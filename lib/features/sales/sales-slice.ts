@@ -1,14 +1,45 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../store';
 
-// TODO: Define Sale type
-export interface Sale {
-  id: string;
-  amount: number;
-  customerName: string;
-  date: string;
-  productId: string;
+interface Product {
+  id: number;
+  name: string;
   quantity: number;
+  measure: number;
+  brand: string;
+  price: number;
+  enabled: boolean;
+}
+
+interface SaleProduct {
+  saleId: number;
+  productId: number;
+  quantity: number;
+  product: Product;
+}
+
+export interface Sale {
+  id: number;
+  customerId: number;
+  employeeId: number;
+  startDate: string;
+  lastUpdateDate: string;
+  status: 'READY' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  products: SaleProduct[];
+  _count: {
+    products: number;
+    deliveries: number;
+  };
+}
+
+interface ApiResponse<T> {
+  status: {
+    success: boolean;
+    errors: string[];
+  };
+  data: {
+    sales: T[];
+  };
 }
 
 export interface SalesState {
@@ -19,31 +50,18 @@ export interface SalesState {
   currentOperation: 'fetch' | 'add' | 'update' | 'delete' | null;
 }
 
-// TODO: Define API response type
-interface ApiResponse<T> {
-  data: T;
-  meta?: {
-    total: number;
-    page: number;
-  };
-}
-
-interface UpdateSalePayload {
-  id: string;
-  updates: Partial<Sale>;
-}
-
-// TODO: Define API lib
-const API_BASE_URL = 'your-api-endpoint';
+const API_BASE_URL = 'https://api.kildall.ar/api';
 
 const api = {
-  async fetchSales(): Promise<ApiResponse<Sale[]>> {
-    const response = await fetch(`${API_BASE_URL}/sales`);
+  async fetchSales(): Promise<ApiResponse<Sale>> {
+    const response = await fetch(`${API_BASE_URL}/shared/sales`, {
+      cache: 'no-store',
+    });
     if (!response.ok) throw new Error('Failed to fetch sales');
     return response.json();
   },
 
-  async createSale(sale: Omit<Sale, 'id'>): Promise<ApiResponse<Sale>> {
+  async createSale(sale: Omit<Sale, 'id' | '_count'>): Promise<ApiResponse<Sale>> {
     const response = await fetch(`${API_BASE_URL}/sales`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -53,7 +71,7 @@ const api = {
     return response.json();
   },
 
-  async updateSale({ id, updates }: UpdateSalePayload): Promise<ApiResponse<Sale>> {
+  async updateSale(id: number, updates: Partial<Sale>): Promise<ApiResponse<Sale>> {
     const response = await fetch(`${API_BASE_URL}/sales/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -63,7 +81,7 @@ const api = {
     return response.json();
   },
 
-  async deleteSale(id: string): Promise<void> {
+  async deleteSale(id: number): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/sales/${id}`, {
       method: 'DELETE',
     });
@@ -79,7 +97,10 @@ export const fetchSales = createAsyncThunk<
 >('sales/fetchSales', async (_, { rejectWithValue }) => {
   try {
     const response = await api.fetchSales();
-    return response.data;
+    if (!response.status.success) {
+      return rejectWithValue(response.status.errors.join(', '));
+    }
+    return response.data.sales;
   } catch (error) {
     return rejectWithValue(error instanceof Error ? error.message : 'An error occurred');
   }
@@ -87,12 +108,15 @@ export const fetchSales = createAsyncThunk<
 
 export const createSale = createAsyncThunk<
   Sale,
-  Omit<Sale, 'id'>,
+  Omit<Sale, 'id' | '_count'>,
   { rejectValue: string; state: RootState }
 >('sales/createSale', async (newSale, { rejectWithValue }) => {
   try {
     const response = await api.createSale(newSale);
-    return response.data;
+    if (!response.status.success) {
+      return rejectWithValue(response.status.errors.join(', '));
+    }
+    return response.data.sales[0];
   } catch (error) {
     return rejectWithValue(error instanceof Error ? error.message : 'An error occurred');
   }
@@ -100,20 +124,23 @@ export const createSale = createAsyncThunk<
 
 export const updateSale = createAsyncThunk<
   Sale,
-  UpdateSalePayload,
+  { id: number; updates: Partial<Sale> },
   { rejectValue: string; state: RootState }
 >('sales/updateSale', async ({ id, updates }, { rejectWithValue }) => {
   try {
-    const response = await api.updateSale({ id, updates });
-    return response.data;
+    const response = await api.updateSale(id, updates);
+    if (!response.status.success) {
+      return rejectWithValue(response.status.errors.join(', '));
+    }
+    return response.data.sales[0];
   } catch (error) {
     return rejectWithValue(error instanceof Error ? error.message : 'An error occurred');
   }
 });
 
 export const deleteSale = createAsyncThunk<
-  string,
-  string,
+  number,
+  number,
   { rejectValue: string; state: RootState }
 >('sales/deleteSale', async (id, { rejectWithValue }) => {
   try {
@@ -124,7 +151,6 @@ export const deleteSale = createAsyncThunk<
   }
 });
 
-// Initial state
 const initialState: SalesState = {
   sales: [],
   status: 'idle',
@@ -133,14 +159,17 @@ const initialState: SalesState = {
   currentOperation: null,
 };
 
-// Slice
 const salesSlice = createSlice({
   name: 'sales',
   initialState,
   reducers: {
     calculateTotalRevenue: (state) => {
       state.totalRevenue = state.sales.reduce(
-        (total, sale) => total + sale.amount,
+        (total, sale) => total + sale.products.reduce(
+          (productTotal, saleProduct) => 
+            productTotal + (saleProduct.quantity * saleProduct.product.price),
+          0
+        ),
         0
       );
     },
@@ -221,7 +250,6 @@ const salesSlice = createSlice({
   },
 });
 
-// Export actions
 export const { calculateTotalRevenue, clearError } = salesSlice.actions;
 
 // Export selectors
@@ -231,8 +259,7 @@ export const selectSalesError = (state: RootState): string | null => state.sales
 export const selectTotalRevenue = (state: RootState): number => state.sales.totalRevenue;
 export const selectCurrentOperation = (state: RootState): SalesState['currentOperation'] => 
   state.sales.currentOperation;
-export const selectSaleById = (state: RootState, saleId: string): Sale | undefined =>
+export const selectSaleById = (state: RootState, saleId: number): Sale | undefined =>
   state.sales.sales.find(sale => sale.id === saleId);
 
-// Export reducer
 export default salesSlice.reducer;
