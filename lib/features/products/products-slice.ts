@@ -137,7 +137,7 @@ const productsSlice = createSlice({
       })
       .addCase(fetchSharedProducts.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.products = action.payload;
+        (state.products as Product[]) = action.payload;
         state.error = null;
         state.currentOperation = null;
       })
@@ -153,7 +153,7 @@ const productsSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.products = action.payload;
+        (state.products as Product[]) = action.payload;
         state.error = null;
         state.currentOperation = null;
       })
@@ -169,7 +169,7 @@ const productsSlice = createSlice({
       })
       .addCase(createProduct.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.products.push(action.payload);
+        (state.products as Product[]).push(action.payload);
         state.error = null;
         state.currentOperation = null;
       })
@@ -185,11 +185,11 @@ const productsSlice = createSlice({
       })
       .addCase(updateProduct.fulfilled, (state, action) => {
         state.status = "succeeded";
-        const index = state.products.findIndex(
+        const index = (state.products as Product[]).findIndex(
           (product) => product.id === action.payload.id
         );
         if (index !== -1) {
-          state.products[index] = action.payload;
+          (state.products as Product[])[index] = action.payload;
         }
         state.error = null;
         state.currentOperation = null;
@@ -206,7 +206,7 @@ const productsSlice = createSlice({
       })
       .addCase(deleteProduct.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.products = state.products.filter(
+        state.products = (state.products as Product[]).filter(
           (product) => product.id !== action.payload
         );
         state.error = null;
