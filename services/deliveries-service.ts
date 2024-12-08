@@ -1,11 +1,8 @@
 import { ApiService } from "@/services/api-service";
-import { Delivery } from "@/types/api/interfaces";
+import { ApiResponse } from "@/types/api/api";
 import {
-  CreateDeliveryResponse,
-  DeleteDeliveryResponse,
   FetchDeliveriesResponse,
   FetchSharedDeliveriesResponse,
-  UpdateDeliveryResponse,
 } from "@/types/api/responses/deliveries";
 
 export class DeliveriesService extends ApiService {

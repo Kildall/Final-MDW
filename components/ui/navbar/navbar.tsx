@@ -1,11 +1,13 @@
 'use client'
 import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { ListItem } from "@/components/ui/navbar/list-item"
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navbar/navigation-menu"
+import { selectIsValidSession, selectUser } from "@/lib/features/auth/auth-slice"
+import { useAppSelector } from "@/lib/hooks"
 import { LogIn, LogOut } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
-import { ListItem } from "./list-item"
 interface NavItem {
   title: string
   href: string
@@ -36,9 +38,8 @@ const navItems: NavItem[] = [
 ]
 
 function Navbar() {
-  // Mock login state (replace with Redux state later)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-
+  const isLoggedIn = useAppSelector(selectIsValidSession);
+  const user = useAppSelector(selectUser);
   return (
     <div className="w-full h-20 bg-primary flex items-center justify-between px-4">
       <div className="flex items-center w-full max-w-7xl m-auto">
@@ -49,7 +50,7 @@ function Navbar() {
             alt="Company Logo"
             width={192}
             height={192}
-            className="cursor-pointer h-12"
+            className="cursor-pointer h-12 w-auto"
           />
         </Link>
 
@@ -77,10 +78,9 @@ function Navbar() {
           </NavigationMenu>
         </div>
 
-        {/* Login/Logout Button */}
-        <div className="flex-shrink-0">
-
-          <Link href={"/login"}>
+        <div className="flex-shrink-0 flex flex-row items-center gap-2">
+          {user && <Label className="text-white md:block hidden"> Bienvenido, {user.name}</Label>}
+          <Link href={isLoggedIn ? "/logout" : "/login"}>
             <Button variant="outline">
               {isLoggedIn ? <span className="flex items-center gap-2">
                 Logout

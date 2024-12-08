@@ -1,9 +1,7 @@
 'use client';
 
 import { useAppSelector } from "@/lib/hooks";
-import { logger } from "@/lib/logger";
 import { Product } from "@/types/api/interfaces";
-import { useEffect } from "react";
 import { BrandsVarietyProductsCard } from "./cards/products/brands-variety-products-card";
 import { InventoryValueProductsCard } from "./cards/products/inventory-value-products-card";
 import { ProductsInStockCard } from "./cards/products/products-in-stock-card";
@@ -39,10 +37,6 @@ function generateProductsCards(products: Product[]): React.ReactNode[] {
 function ProductsStats() {
   const products = useAppSelector(state => state.products.products);
   const productsStats = generateProductsCards(products);
-
-  useEffect(() => {
-    logger.info(`ProductsStats: ${products.length} products`);
-  }, [products]);
 
   return (
     <section className="flex flex-col gap-4 py-8">

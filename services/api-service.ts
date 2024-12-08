@@ -18,7 +18,7 @@ export class ApiService {
     }
 
     try {
-      logger.info(`Fetching ${endpoint} with options:`, options);
+      logger.info(`Fetching ${endpoint}`);
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         ...options,
         headers: {

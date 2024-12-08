@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
-import localFont from "next/font/local";
 import "@/app/globals.css";
 import StoreProvider from "@/app/store-provider";
 import { Navbar } from "@/components/ui/navbar/navbar";
+import type { Metadata } from "next";
+import localFont from "next/font/local";
 
 const doto = localFont({
   src: "./fonts/doto-variable.ttf",
@@ -14,9 +14,11 @@ const spaceGrotesk = localFont({
   variable: "--font-space-grotesk",
   weight: "100 900",
 });
-
 export const metadata: Metadata = {
-  title: "GVM Dashboard",
+  title: {
+    default: "GVM Dashboard",
+    template: "%s | GVM Dashboard",
+  },
   description: "Dashboard para el control de GVM",
 };
 

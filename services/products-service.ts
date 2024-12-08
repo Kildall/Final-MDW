@@ -1,11 +1,12 @@
 import { ApiService } from "@/services/api-service";
+import { ApiResponse } from "@/types/api/api";
 import { Product } from "@/types/api/interfaces";
 import {
+  CreateProductResponse,
+  DeleteProductResponse,
   FetchProductsResponse,
   FetchSharedProductsResponse,
-  CreateProductResponse,
   UpdateProductResponse,
-  DeleteProductResponse,
 } from "@/types/api/responses/products";
 
 export class ProductsService extends ApiService {

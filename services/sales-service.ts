@@ -1,11 +1,12 @@
 import { ApiService } from "@/services/api-service";
+import { ApiResponse } from "@/types/api/api";
 import { Sale } from "@/types/api/interfaces";
 import {
+  CreateSaleResponse,
+  DeleteSaleResponse,
   FetchSalesResponse,
   FetchSharedSalesResponse,
-  CreateSaleResponse,
   UpdateSaleResponse,
-  DeleteSaleResponse,
 } from "@/types/api/responses/sales";
 
 export class SalesService extends ApiService {

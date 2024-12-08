@@ -1,14 +1,12 @@
-import { Metadata } from "next";
-
-import { LoginForm } from "@/components/login/login-form";
+import { LogoutForm } from "@/components/logout/logout-form";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 
-export const metadata: Metadata = {
-  title: "Login",
-  description: "Iniciar sesión",
-}
+export const metadata = {
+  title: "Gracias por usar GVM",
+  description: "Cierre de sesión de GVM",
+};
 
-export default function LoginPage() {
+export default function LogoutPage() {
   return (
     <div className="container relative hidden h-[800px] flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
       <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
@@ -24,7 +22,7 @@ export default function LoginPage() {
             width={850}
           />
         </div>
-        <div className="relative z-1 flex items-center text-lg font-medium">
+        <div className="relative z-20 flex items-center text-lg font-medium">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -48,19 +46,7 @@ export default function LoginPage() {
           </blockquote>
         </div>
       </div>
-      <div className="lg:p-8">
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-          <div className="flex flex-col space-y-2 text-center">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Iniciar sesión
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Ingrese su email y contraseña
-            </p>
-          </div>
-          <LoginForm />
-        </div>
-      </div>
+      <LogoutForm />
     </div>
   )
 }
