@@ -1,10 +1,10 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "@/lib/store";
-import { Sale } from "@/types/api/interfaces";
-import { SalesService } from "@/services/sales-service";
+import { Delivery } from "@/types/api/interfaces";
+import { DeliveriesService } from "@/services/deliveries-service";
 
-export interface SalesState {
-  sales: Sale[];
+export interface DeliveriesState {
+  deliveries: Delivery[];
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
   totalRevenue: number;
@@ -18,17 +18,17 @@ export interface SalesState {
 }
 
 // Async Thunks
-export const fetchSales = createAsyncThunk<
-  Sale[],
+export const fetchDeliveries = createAsyncThunk<
+  Delivery[],
   void,
   { rejectValue: string; state: RootState }
->("sales/fetchSales", async (_, { rejectWithValue }) => {
+>("deliveries/fetchDeliveries", async (_, { rejectWithValue }) => {
   try {
-    const response = await SalesService.fetchSales();
+    const response = await DeliveriesService.fetchDeliveries();
     if (!response.status.success) {
       return rejectWithValue(response.status.errors.join(", "));
     }
-    return response.data.sales;
+    return response.data.deliveries;
   } catch (error) {
     return rejectWithValue(
       error instanceof Error ? error.message : "An error occurred"
@@ -36,17 +36,17 @@ export const fetchSales = createAsyncThunk<
   }
 });
 
-export const fetchSharedSales = createAsyncThunk<
-  Sale[],
+export const fetchSharedDeliveries = createAsyncThunk<
+  Delivery[],
   void,
   { rejectValue: string; state: RootState }
->("sales/fetchSharedSales", async (_, { rejectWithValue }) => {
+>("deliveries/fetchSharedDeliveries", async (_, { rejectWithValue }) => {
   try {
-    const response = await SalesService.fetchSharedSales();
+    const response = await DeliveriesService.fetchSharedDeliveries();
     if (!response.status.success) {
       return rejectWithValue(response.status.errors.join(", "));
     }
-    return response.data.sales;
+    return response.data.deliveries;
   } catch (error) {
     return rejectWithValue(
       error instanceof Error ? error.message : "An error occurred"
@@ -54,13 +54,13 @@ export const fetchSharedSales = createAsyncThunk<
   }
 });
 
-export const createSale = createAsyncThunk<
-  Sale,
-  Omit<Sale, "id" | "_count">,
+export const createDelivery = createAsyncThunk<
+  Delivery,
+  Omit<Delivery, "id" | "_count">,
   { rejectValue: string; state: RootState }
->("sales/createSale", async (newSale, { rejectWithValue }) => {
+>("deliveries/createDelivery", async (newDelivery, { rejectWithValue }) => {
   try {
-    const response = await SalesService.createSale(newSale);
+    const response = await DeliveriesService.createDelivery(newDelivery);
     if (!response.status.success) {
       return rejectWithValue(response.status.errors.join(", "));
     }
@@ -72,13 +72,13 @@ export const createSale = createAsyncThunk<
   }
 });
 
-export const updateSale = createAsyncThunk<
-  Sale,
-  { id: number; updates: Partial<Sale> },
+export const updateDelivery = createAsyncThunk<
+  Delivery,
+  { id: number; updates: Partial<Delivery> },
   { rejectValue: string; state: RootState }
->("sales/updateSale", async ({ id, updates }, { rejectWithValue }) => {
+>("deliveries/updateDelivery", async ({ id, updates }, { rejectWithValue }) => {
   try {
-    const response = await SalesService.updateSale(id, updates);
+    const response = await DeliveriesService.updateDelivery(id, updates);
     if (!response.status.success) {
       return rejectWithValue(response.status.errors.join(", "));
     }
@@ -90,13 +90,16 @@ export const updateSale = createAsyncThunk<
   }
 });
 
-export const deleteSale = createAsyncThunk<
+export const deleteDelivery = createAsyncThunk<
   number,
   number,
   { rejectValue: string; state: RootState }
->("sales/deleteSale", async (id, { rejectWithValue }) => {
+>("deliveries/deleteDelivery", async (id, { rejectWithValue }) => {
   try {
-    await SalesService.deleteSale(id);
+    const response = await DeliveriesService.deleteDelivery(id);
+    if (!response.status.success) {
+      return rejectWithValue(response.status.errors.join(", "));
+    }
     return id;
   } catch (error) {
     return rejectWithValue(
@@ -105,126 +108,109 @@ export const deleteSale = createAsyncThunk<
   }
 });
 
-const initialState: SalesState = {
-  sales: [],
+const initialState: DeliveriesState = {
+  deliveries: [],
   status: "idle",
   error: null,
   totalRevenue: 0,
   currentOperation: null,
 };
 
-const salesSlice = createSlice({
-  name: "sales",
+const deliveriesSlice = createSlice({
+  name: "deliveries",
   initialState,
   reducers: {
-    calculateTotalRevenue: (state) => {
-      if (state.sales.length === 0) {
-        state.totalRevenue = 0;
-        return;
-      }
-
-      state.totalRevenue = state.sales.reduce((total, sale) => {
-        if (!sale.products) return total;
-        return (
-          total +
-          sale.products.reduce((productTotal, saleProduct) => {
-            if (!saleProduct.product) return productTotal;
-            return (
-              productTotal + saleProduct.quantity * saleProduct.product.price
-            );
-          }, 0)
-        );
-      }, 0);
-    },
     clearError: (state) => {
       state.error = null;
       state.status = "idle";
     },
   },
   extraReducers: (builder) => {
-    // Fetch Sales
+    // Fetch Deliveries
     builder
-      .addCase(fetchSales.pending, (state) => {
+      .addCase(fetchDeliveries.pending, (state) => {
         state.status = "loading";
         state.currentOperation = "fetch";
       })
-      .addCase(fetchSales.fulfilled, (state, action) => {
+      .addCase(fetchDeliveries.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.sales = action.payload;
+        state.deliveries = action.payload;
         state.error = null;
         state.currentOperation = null;
       })
-      .addCase(fetchSales.rejected, (state, action) => {
+      .addCase(fetchDeliveries.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload ?? "Unknown error occurred";
         state.currentOperation = null;
       });
-    // Fetch Shared Sales
+    // Fetch Shared Deliveries
     builder
-      .addCase(fetchSharedSales.pending, (state) => {
+      .addCase(fetchSharedDeliveries.pending, (state) => {
         state.status = "loading";
         state.currentOperation = "fetch-shared";
       })
-      .addCase(fetchSharedSales.fulfilled, (state, action) => {
+      .addCase(fetchSharedDeliveries.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.sales = action.payload;
+        state.deliveries = action.payload;
         state.error = null;
         state.currentOperation = null;
       })
-      .addCase(fetchSharedSales.rejected, (state, action) => {
+      .addCase(fetchSharedDeliveries.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload ?? "Unknown error occurred";
         state.currentOperation = null;
       })
-      // Create Sale
-      .addCase(createSale.pending, (state) => {
+      // Create Delivery
+      .addCase(createDelivery.pending, (state) => {
         state.status = "loading";
         state.currentOperation = "add";
       })
-      .addCase(createSale.fulfilled, (state, action) => {
+      .addCase(createDelivery.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.sales.push(action.payload);
+        state.deliveries.push(action.payload);
         state.error = null;
         state.currentOperation = null;
       })
-      .addCase(createSale.rejected, (state, action) => {
+      .addCase(createDelivery.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload ?? "Unknown error occurred";
         state.currentOperation = null;
       })
-      // Update Sale
-      .addCase(updateSale.pending, (state) => {
+      // Update Delivery
+      .addCase(updateDelivery.pending, (state) => {
         state.status = "loading";
         state.currentOperation = "update";
       })
-      .addCase(updateSale.fulfilled, (state, action) => {
+      .addCase(updateDelivery.fulfilled, (state, action) => {
         state.status = "succeeded";
-        const index = state.sales.findIndex(
-          (sale) => sale.id === action.payload.id
+        const index = state.deliveries.findIndex(
+          (delivery) => delivery.id === action.payload.id
         );
         if (index !== -1) {
-          state.sales[index] = action.payload;
+          state.deliveries[index] = action.payload;
         }
         state.error = null;
         state.currentOperation = null;
       })
-      .addCase(updateSale.rejected, (state, action) => {
+      .addCase(updateDelivery.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload ?? "Unknown error occurred";
         state.currentOperation = null;
       })
-      // Delete Sale
-      .addCase(deleteSale.pending, (state) => {
+      // Delete Delivery
+      .addCase(deleteDelivery.pending, (state) => {
         state.status = "loading";
         state.currentOperation = "delete";
       })
-      .addCase(deleteSale.fulfilled, (state, action) => {
+      .addCase(deleteDelivery.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.sales = state.sales.filter((sale) => sale.id !== action.payload);
+        state.deliveries = state.deliveries.filter(
+          (delivery) => delivery.id !== action.payload
+        );
         state.error = null;
         state.currentOperation = null;
       })
-      .addCase(deleteSale.rejected, (state, action) => {
+      .addCase(deleteDelivery.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload ?? "Unknown error occurred";
         state.currentOperation = null;
@@ -232,22 +218,23 @@ const salesSlice = createSlice({
   },
 });
 
-export const { calculateTotalRevenue, clearError } = salesSlice.actions;
+export const { clearError } = deliveriesSlice.actions;
 
 // Export selectors
-export const selectAllSales = (state: RootState): Sale[] => state.sales.sales;
-export const selectSalesStatus = (state: RootState): SalesState["status"] =>
-  state.sales.status;
-export const selectSalesError = (state: RootState): string | null =>
-  state.sales.error;
-export const selectTotalRevenue = (state: RootState): number =>
-  state.sales.totalRevenue;
+export const selectAllDeliveries = (state: RootState): Delivery[] =>
+  state.deliveries.deliveries;
+export const selectDeliveriesStatus = (
+  state: RootState
+): DeliveriesState["status"] => state.deliveries.status;
+export const selectDeliveriesError = (state: RootState): string | null =>
+  state.deliveries.error;
 export const selectCurrentOperation = (
   state: RootState
-): SalesState["currentOperation"] => state.sales.currentOperation;
-export const selectSaleById = (
+): DeliveriesState["currentOperation"] => state.deliveries.currentOperation;
+export const selectDeliveryById = (
   state: RootState,
-  saleId: number
-): Sale | undefined => state.sales.sales.find((sale) => sale.id === saleId);
+  deliveryId: number
+): Delivery | undefined =>
+  state.deliveries.deliveries.find((delivery) => delivery.id === deliveryId);
 
-export default salesSlice.reducer;
+export default deliveriesSlice.reducer;

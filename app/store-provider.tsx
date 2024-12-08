@@ -1,8 +1,9 @@
 'use client'
+import { fetchSharedDeliveries } from '@/lib/features/deliveries/deliveries-slice'
+import { fetchSharedSales } from '@/lib/features/sales/sales-slice'
+import { AppStore, makeStore } from '@/lib/store'
 import { useRef } from 'react'
 import { Provider } from 'react-redux'
-import { makeStore, AppStore } from '../lib/store'
-import { fetchSales } from '../lib/features/sales/sales-slice'
 
 export default function StoreProvider({
   children
@@ -11,9 +12,12 @@ export default function StoreProvider({
 }) {
   const storeRef = useRef<AppStore>()
   if (!storeRef.current) {
-    // Create the store instance the first time this renders
+
     storeRef.current = makeStore()
-    storeRef.current.dispatch(fetchSales())
+
+    // Retrieve shared data on startup
+    storeRef.current.dispatch(fetchSharedSales())
+    storeRef.current.dispatch(fetchSharedDeliveries())
   }
 
   return <Provider store={storeRef.current}>{children}</Provider>
