@@ -15,8 +15,6 @@ import * as React from "react";
 import { z } from "zod";
 import { toFormikValidationSchema } from 'zod-formik-adapter';
 
-interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> { }
-
 const loginSchema = z.object({
   email: z
     .string({ required_error: "El email es requerido" })
@@ -30,7 +28,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 
-export function LoginForm({ className, ...props }: LoginFormProps) {
+export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   const dispatch = useAppDispatch();
   const isLoggedIn = useAppSelector(selectIsValidSession);
   const { toast } = useToast();

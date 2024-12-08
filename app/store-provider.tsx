@@ -2,7 +2,7 @@
 import { fetchSharedDeliveries } from '@/lib/features/deliveries/deliveries-slice'
 import { fetchSharedProducts } from '@/lib/features/products/products-slice'
 import { fetchSharedSales } from '@/lib/features/sales/sales-slice'
-import { AppStore, makeStore } from '@/lib/store'
+import { AppStore, store } from '@/lib/store'
 import { useRef } from 'react'
 import { Provider } from 'react-redux'
 
@@ -14,7 +14,7 @@ export default function StoreProvider({
   const storeRef = useRef<AppStore>()
   if (!storeRef.current) {
 
-    storeRef.current = makeStore()
+    storeRef.current = store
 
     // Retrieve shared data on startup
     storeRef.current.dispatch(fetchSharedSales())
