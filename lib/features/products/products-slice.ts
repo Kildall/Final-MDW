@@ -206,8 +206,8 @@ const productsSlice = createSlice({
       })
       .addCase(deleteProduct.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.products = (state.products as Product[]).filter(
-          (product) => product.id !== action.payload
+        (state.products as Product[]) = (state.products as Product[]).filter(
+          (product) => (product as Product).id !== action.payload
         );
         state.error = null;
         state.currentOperation = null;
