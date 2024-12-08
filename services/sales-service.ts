@@ -16,7 +16,6 @@ export class SalesService extends ApiService {
   static async fetchSharedSales(): Promise<
     ApiResponse<FetchSharedSalesResponse>
   > {
-    console.log("fetching shared sales");
     return this.fetch<ApiResponse<FetchSharedSalesResponse>>("/shared/sales");
   }
 

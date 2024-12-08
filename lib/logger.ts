@@ -1,4 +1,4 @@
-import pino, { Logger, LoggerOptions, LevelWithSilent } from "pino";
+import pino, { Logger, LoggerOptions } from "pino";
 
 type LogLevel = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 
@@ -39,7 +39,7 @@ class AppLogger {
       },
       timestamp: () => `,"time":"${new Date().toISOString()}"`,
       messageKey: "msg",
-      level: "trace",
+      level: "info",
       ...options,
     });
   }

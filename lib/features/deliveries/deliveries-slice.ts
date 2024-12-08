@@ -1,7 +1,7 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "@/lib/store";
-import { Delivery } from "@/types/api/interfaces";
 import { DeliveriesService } from "@/services/deliveries-service";
+import { Delivery } from "@/types/api/interfaces";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 export interface DeliveriesState {
   deliveries: Delivery[];
@@ -47,60 +47,6 @@ export const fetchSharedDeliveries = createAsyncThunk<
       return rejectWithValue(response.status.errors.join(", "));
     }
     return response.data.deliveries;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
-  }
-});
-
-export const createDelivery = createAsyncThunk<
-  Delivery,
-  Omit<Delivery, "id" | "_count">,
-  { rejectValue: string; state: RootState }
->("deliveries/createDelivery", async (newDelivery, { rejectWithValue }) => {
-  try {
-    const response = await DeliveriesService.createDelivery(newDelivery);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
-    }
-    return response.data;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
-  }
-});
-
-export const updateDelivery = createAsyncThunk<
-  Delivery,
-  { id: number; updates: Partial<Delivery> },
-  { rejectValue: string; state: RootState }
->("deliveries/updateDelivery", async ({ id, updates }, { rejectWithValue }) => {
-  try {
-    const response = await DeliveriesService.updateDelivery(id, updates);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
-    }
-    return response.data;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
-  }
-});
-
-export const deleteDelivery = createAsyncThunk<
-  number,
-  number,
-  { rejectValue: string; state: RootState }
->("deliveries/deleteDelivery", async (id, { rejectWithValue }) => {
-  try {
-    const response = await DeliveriesService.deleteDelivery(id);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
-    }
-    return id;
   } catch (error) {
     return rejectWithValue(
       error instanceof Error ? error.message : "An error occurred"
@@ -156,61 +102,6 @@ const deliveriesSlice = createSlice({
         state.currentOperation = null;
       })
       .addCase(fetchSharedDeliveries.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
-        state.currentOperation = null;
-      })
-      // Create Delivery
-      .addCase(createDelivery.pending, (state) => {
-        state.status = "loading";
-        state.currentOperation = "add";
-      })
-      .addCase(createDelivery.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.deliveries.push(action.payload);
-        state.error = null;
-        state.currentOperation = null;
-      })
-      .addCase(createDelivery.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
-        state.currentOperation = null;
-      })
-      // Update Delivery
-      .addCase(updateDelivery.pending, (state) => {
-        state.status = "loading";
-        state.currentOperation = "update";
-      })
-      .addCase(updateDelivery.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        const index = state.deliveries.findIndex(
-          (delivery) => delivery.id === action.payload.id
-        );
-        if (index !== -1) {
-          state.deliveries[index] = action.payload;
-        }
-        state.error = null;
-        state.currentOperation = null;
-      })
-      .addCase(updateDelivery.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
-        state.currentOperation = null;
-      })
-      // Delete Delivery
-      .addCase(deleteDelivery.pending, (state) => {
-        state.status = "loading";
-        state.currentOperation = "delete";
-      })
-      .addCase(deleteDelivery.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.deliveries = state.deliveries.filter(
-          (delivery) => delivery.id !== action.payload
-        );
-        state.error = null;
-        state.currentOperation = null;
-      })
-      .addCase(deleteDelivery.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload ?? "Unknown error occurred";
         state.currentOperation = null;

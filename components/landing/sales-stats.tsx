@@ -1,9 +1,9 @@
 'use client';
 
-import { useAppSelector } from "@/lib/hooks";
-import { TotalSalesCard } from "@/components/landing/cards/sales/total-sales-card";
 import { AverageSalesCard } from "@/components/landing/cards/sales/average-sales-card";
 import { CancelledSalesCard } from "@/components/landing/cards/sales/cancelled-sales-card";
+import { TotalSalesCard } from "@/components/landing/cards/sales/total-sales-card";
+import { useAppSelector } from "@/lib/hooks";
 import { Sale } from "@/types/api/interfaces";
 
 function generateSalesCards(sales: Sale[]): React.ReactNode[] {
@@ -45,7 +45,7 @@ function SalesStats() {
       <h2 className="text-4xl font-bold text-left font-doto">Ventas</h2>
       <h3 className="text-2xl font-light text-left">Resumen de las ventas dadas, en el mejor detalle posible</h3>
       <div className="flex flex-row justify-center items-center">
-        <div className="flex flex-row gap-5 max-w-4xl w-full">
+        <div className="flex flex-row gap-5 max-w-5xl w-full">
           {
             salesStats.map((cardStat, index) => (
               <div key={`sales-stat-${index}`} className="md:basis-1/2 lg:basis-1/3 p-2">
