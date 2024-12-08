@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="container relative hidden h-[800px] flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-      <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
-        <div className="absolute inset-0 bg-zinc-900 overflow-hidden">
+    <div className="container relative flex flex-1 flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
+      <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex rounded-lg">
+        <div className="absolute inset-0 bg-zinc-900 overflow-hidden rounded-lg">
           <FlickeringGrid
             className="z-0 absolute inset-0 size-full p-1"
             squareSize={4}
@@ -48,7 +48,7 @@ export default function LoginPage() {
           </blockquote>
         </div>
       </div>
-      <div className="lg:p-8">
+      <div className="lg:p-8 w-full">
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
           <div className="flex flex-col space-y-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight">

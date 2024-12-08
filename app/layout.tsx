@@ -1,6 +1,7 @@
 import "@/app/globals.css";
 import StoreProvider from "@/app/store-provider";
 import { Navbar } from "@/components/ui/navbar/navbar";
+import { Toaster } from "@/components/ui/toaster";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 
@@ -30,13 +31,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${doto.variable} ${spaceGrotesk.variable} antialiased`}
+        className={`${doto.variable} ${spaceGrotesk.variable} antialiased flex flex-col min-h-screen`}
       >
         <StoreProvider>
           <Navbar />
-          <main className="max-w-7xl mx-auto p-4">
+          <main className="flex-1 flex flex-col max-w-7xl w-full mx-auto p-4">
             {children}
           </main>
+          <Toaster />
         </StoreProvider>
       </body>
     </html>

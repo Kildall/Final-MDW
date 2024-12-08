@@ -8,33 +8,68 @@ import { useAppSelector } from "@/lib/hooks"
 import { LogIn, LogOut } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+
 interface NavItem {
   title: string
   href: string
   description: string
 }
 
-const navItems: NavItem[] = [
+const salesNavMenuItems: NavItem[] = [
   {
-    title: 'Ventas',
-    href: '/sales',
-    description: 'Todas las ventas de la empresa',
+    title: "Dashboard de Ventas",
+    href: "/sales",
+    description: "Visualiza y gestiona todas tus ventas en un solo lugar",
   },
   {
-    title: 'Productos',
-    href: '/products',
-    description: 'Disponibilidad de inventario',
+    title: "Crear Venta",
+    href: "/sales/create",
+    description: "Crea una nueva venta",
   },
   {
-    title: 'Entregas',
-    href: '/deliveries',
-    description: 'Diferentes entregas y sus detalles',
+    title: "Listado de Ventas",
+    href: "/sales/list",
+    description: "Ve todos tus ventas",
+  }
+]
+
+const deliveryNavMenuItems: NavItem[] = [
+  {
+    title: "Dashboard de Entregas",
+    href: "/deliveries",
+    description: "Visualiza y gestiona todas tus entregas en un solo lugar",
   },
   {
-    title: 'Proveedores',
-    href: '/suppliers',
-    description: 'Proveedores con los que trabajamos',
+    title: "Listado de Entregas",
+    href: "/deliveries/list",
+    description: "Ve todos tus envíos",
+  }
+]
+
+const productsNavMenuItems: NavItem[] = [
+  {
+    title: "Listado de Productos",
+    href: "/products/list",
+    description: "Ve todos tus productos",
+  }
+]
+
+const suppliersNavMenuItems: NavItem[] = [
+  {
+    title: "Dashboard de Proveedores",
+    href: "/suppliers",
+    description: "Visualiza y gestiona todos tus proveedores en un solo lugar",
   },
+  {
+    title: "Crear Proveedor",
+    href: "/suppliers/create",
+    description: "Crea un nuevo proveedor",
+  },
+  {
+    title: "Listado de Proveedores",
+    href: "/suppliers/list",
+    description: "Ve todos tus proveedores",
+  }
 ]
 
 function Navbar() {
@@ -42,7 +77,7 @@ function Navbar() {
   const user = useAppSelector(selectUser);
   return (
     <div className="w-full h-20 bg-primary flex items-center justify-between px-4">
-      <div className="flex items-center w-full max-w-7xl m-auto">
+      <div className="flex items-center w-full max-w-7xl m-auto justify-between">
         {/* Logo */}
         <Link href="/" className="flex-shrink-0">
           <Image
@@ -54,20 +89,52 @@ function Navbar() {
           />
         </Link>
 
-        {/* Centered Navigation Menu */}
-        <div className="flex-grow flex justify-start">
+        {/* Logged in Items */}
+        {isLoggedIn && (
           <NavigationMenu>
-            <NavigationMenuList>
+            <NavigationMenuList className="flex flex-row gap-4">
               <NavigationMenuItem>
-                <NavigationMenuTrigger>Estadisticas</NavigationMenuTrigger>
+                <NavigationMenuTrigger>Ventas</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                    {navItems.map((item) => (
-                      <ListItem
-                        key={item.title}
-                        title={item.title}
-                        href={item.href}
-                      >
+                    {salesNavMenuItems.map((item) => (
+                      <ListItem key={item.title} href={item.href} title={item.title}>
+                        {item.description}
+                      </ListItem>
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Proveedores</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                    {suppliersNavMenuItems.map((item) => (
+                      <ListItem key={item.title} href={item.href} title={item.title}>
+                        {item.description}
+                      </ListItem>
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Productos</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                    {productsNavMenuItems.map((item) => (
+                      <ListItem key={item.title} href={item.href} title={item.title}>
+                        {item.description}
+                      </ListItem>
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Entregas</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                    {deliveryNavMenuItems.map((item) => (
+                      <ListItem key={item.title} href={item.href} title={item.title}>
                         {item.description}
                       </ListItem>
                     ))}
@@ -76,8 +143,9 @@ function Navbar() {
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
-        </div>
+        )}
 
+        {/* Login/Logout */}
         <div className="flex-shrink-0 flex flex-row items-center gap-2">
           {user && <Label className="text-white md:block hidden"> Bienvenido, {user.name}</Label>}
           <Link href={isLoggedIn ? "/logout" : "/login"}>
@@ -94,6 +162,7 @@ function Navbar() {
           </Link>
         </div>
       </div>
+
 
     </div>
   )

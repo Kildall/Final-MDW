@@ -1,9 +1,14 @@
 export interface ApiResponse<T> {
   status: {
     success: boolean;
-    errors: string[];
+    errors: ResponseError[];
   };
   data: T;
+}
+
+export interface ResponseError {
+  code: number;
+  message: string;
 }
 
 export interface AuthUser {
