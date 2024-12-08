@@ -93,7 +93,7 @@ const deliveriesSlice = createSlice({
         fetchDeliveries.fulfilled,
         (state, action: PayloadAction<DeliveryFull[]>) => {
           state.status = "succeeded";
-          state.deliveries = action.payload;
+          (state.deliveries as DeliveryFull[]) = action.payload;
           state.error = null;
           state.currentOperation = null;
         }
@@ -111,7 +111,7 @@ const deliveriesSlice = createSlice({
         fetchSharedDeliveries.fulfilled,
         (state, action: PayloadAction<DeliveryFull[]>) => {
           state.status = "succeeded";
-          state.deliveries = action.payload;
+          (state.deliveries as DeliveryFull[]) = action.payload;
           state.error = null;
           state.currentOperation = null;
         }
