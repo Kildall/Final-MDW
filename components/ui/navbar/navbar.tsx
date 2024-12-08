@@ -1,11 +1,11 @@
 'use client'
-import Image from 'next/image'
-import { useState } from 'react'
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuTrigger, NavigationMenuContent, NavigationMenuLink } from "@/components/ui/navbar/navigation-menu"
 import { Button } from "@/components/ui/button"
-import { ListItem } from "./list-item"
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navbar/navigation-menu"
 import { LogIn, LogOut } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
+import { useState } from 'react'
+import { ListItem } from "./list-item"
 interface NavItem {
   title: string
   href: string
@@ -38,10 +38,6 @@ const navItems: NavItem[] = [
 function Navbar() {
   // Mock login state (replace with Redux state later)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-
-  const handleLoginClick = () => {
-    setIsLoggedIn(!isLoggedIn)
-  }
 
   return (
     <div className="w-full h-20 bg-primary flex items-center justify-between px-4">
@@ -83,16 +79,19 @@ function Navbar() {
 
         {/* Login/Logout Button */}
         <div className="flex-shrink-0">
-          <Button onClick={handleLoginClick} variant="outline">
-            {isLoggedIn ? <span className="flex items-center gap-2">
-              Logout
-              <LogOut className="w-4 h-4" />
-            </span> :
-              <span className="flex items-center gap-2">
-                Login
-                <LogIn className="w-4 h-4" />
-              </span>}
-          </Button>
+
+          <Link href={"/login"}>
+            <Button variant="outline">
+              {isLoggedIn ? <span className="flex items-center gap-2">
+                Logout
+                <LogOut className="w-4 h-4" />
+              </span> :
+                <span className="flex items-center gap-2">
+                  Login
+                  <LogIn className="w-4 h-4" />
+                </span>}
+            </Button>
+          </Link>
         </div>
       </div>
 
