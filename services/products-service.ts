@@ -10,8 +10,14 @@ import {
 } from "@/types/api/responses/products";
 
 export class ProductsService extends ApiService {
-  static async fetchProducts(): Promise<ApiResponse<FetchProductsResponse>> {
-    return this.fetch<ApiResponse<FetchProductsResponse>>("/products");
+  static async fetchProducts(
+    token: string
+  ): Promise<ApiResponse<FetchProductsResponse>> {
+    return this.fetch<ApiResponse<FetchProductsResponse>>(
+      "/products",
+      {},
+      token
+    );
   }
 
   static async fetchSharedProducts(): Promise<

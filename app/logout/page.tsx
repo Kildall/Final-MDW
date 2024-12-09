@@ -40,7 +40,8 @@ export default function LogoutPage() {
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-              &ldquo;GVM me ha entregado un valor como ninguna otra aplicación de gestión nunca me ha entregado...&rdquo;
+              &ldquo;GVM me ha entregado un valor como ninguna otra aplicación
+              de gestión nunca me ha entregado...&rdquo;
             </p>
             <footer className="text-sm">Lucio Perez</footer>
           </blockquote>
@@ -48,5 +49,5 @@ export default function LogoutPage() {
       </div>
       <LogoutForm />
     </div>
-  )
+  );
 }
