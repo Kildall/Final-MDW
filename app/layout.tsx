@@ -21,6 +21,17 @@ export const metadata: Metadata = {
     template: "%s | GVM Dashboard",
   },
   description: "Dashboard para el control de GVM",
+  icons: {
+    icon: "/favicon.ico",
+  },
+  openGraph: {
+    title: "GVM Dashboard",
+    description: "Dashboard para el control de GVM",
+    url: "https://mdw.kildall.ar",
+    siteName: "GVM Dashboard",
+    locale: "es-AR",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
