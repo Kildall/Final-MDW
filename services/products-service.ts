@@ -39,11 +39,19 @@ export class ProductsService extends ApiService {
 
   static async updateProduct(
     id: number,
-    updates: Partial<Product>
+    updates: Partial<Product>,
+    token: string
   ): Promise<ApiResponse<UpdateProductResponse>> {
-    return this.fetch<ApiResponse<UpdateProductResponse>>(`/products/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(updates),
+    return this.fetch<ApiResponse<UpdateProductResponse>>(`/products`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        productId: id,
+        ...updates,
+      }),
     });
   }
 
