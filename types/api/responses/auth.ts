@@ -9,3 +9,7 @@ export interface LoginResponse {
 export interface GetAuthUserResponse {
   user: AuthUser;
 }
+
+export interface ValidateTokenResponse {
+  valid: boolean;
+}

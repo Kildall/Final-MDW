@@ -1,5 +1,6 @@
 import "@/app/globals.css";
 import StoreProvider from "@/app/store-provider";
+import { SessionChecker } from "@/components/session-checker";
 import { Navbar } from "@/components/ui/navbar/navbar";
 import { Toaster } from "@/components/ui/toaster";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -51,6 +52,7 @@ export default function RootLayout({
             {children}
           </main>
           <Toaster />
+          <SessionChecker />
         </StoreProvider>
         <SpeedInsights />
       </body>

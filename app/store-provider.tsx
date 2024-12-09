@@ -2,9 +2,10 @@
 import { fetchSharedDeliveries } from '@/lib/features/deliveries/deliveries-slice'
 import { fetchSharedProducts } from '@/lib/features/products/products-slice'
 import { fetchSharedSales } from '@/lib/features/sales/sales-slice'
-import { AppStore, store } from '@/lib/store'
+import { AppStore, persistor, store } from '@/lib/store'
 import { useRef } from 'react'
 import { Provider } from 'react-redux'
+import { PersistGate } from 'redux-persist/integration/react'
 
 export default function StoreProvider({
   children
@@ -22,5 +23,11 @@ export default function StoreProvider({
     storeRef.current.dispatch(fetchSharedProducts())
   }
 
-  return <Provider store={storeRef.current}>{children}</Provider>
+  return (
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        {children}
+      </PersistGate>
+    </Provider>
+  );
 }

@@ -1,6 +1,6 @@
 'use client';
 import { Button } from "@/components/ui/button";
-import { logout, selectIsValidSession } from "@/lib/features/auth/auth-slice";
+import { logoutThunk, selectIsValidSession } from "@/lib/features/auth/auth-slice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -15,7 +15,7 @@ export function LogoutForm() {
     if (!isLoggedIn) {
       redirect('/login');
     } else {
-      dispatch(logout());
+      dispatch(logoutThunk());
     }
   }, []);
 

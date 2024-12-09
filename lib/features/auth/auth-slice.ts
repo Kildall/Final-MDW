@@ -1,15 +1,22 @@
 import { logger } from "@/lib/logger";
+import { RootState } from "@/lib/store";
 import { AuthService } from "@/services/auth-service";
 import { AuthUser } from "@/types/api/api";
 import { GetAuthUserResponse } from "@/types/api/responses/auth";
-import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {
+  Action,
+  createSelector,
+  createSlice,
+  PayloadAction,
+  ThunkAction,
+} from "@reduxjs/toolkit";
+import { PURGE } from "redux-persist";
 
 interface AuthState {
   token: string | null;
   expires: number | null;
   user: AuthUser | null;
   isAuthenticated: boolean;
-  loading: boolean;
 }
 
 const initialState: AuthState = {
@@ -17,7 +24,6 @@ const initialState: AuthState = {
   expires: null,
   user: null,
   isAuthenticated: false,
-  loading: false,
 };
 
 const isSessionExpired = (expiresAt: number | null): boolean => {
@@ -34,7 +40,6 @@ const authSlice = createSlice({
       action: PayloadAction<{ token: string; expiresAt: string | number }>
     ) => {
       const { token, expiresAt } = action.payload;
-      // Convert expiresAt to absolute timestamp if it's not already
       const expiresTimestamp =
         typeof expiresAt === "string"
           ? new Date(expiresAt).getTime()
@@ -47,38 +52,57 @@ const authSlice = createSlice({
     setUser: (state, action: PayloadAction<GetAuthUserResponse>) => {
       state.user = action.payload.user;
     },
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.loading = action.payload;
-    },
-    logout: (state) => {
-      if (state.token) {
-        AuthService.logout(state.token).then(() => {
-          logger.info("Logged out");
-        });
-      }
+    clearAuth: (state) => {
       state.token = null;
       state.expires = null;
       state.isAuthenticated = false;
       state.user = null;
     },
-    checkSession: (state) => {
-      if (state.isAuthenticated && isSessionExpired(state.expires)) {
-        if (state.token) {
-          AuthService.logout(state.token).then(() => {
-            logger.info("Logged out");
-          });
-        }
-        state.token = null;
-        state.expires = null;
-        state.isAuthenticated = false;
-        state.user = null;
-      }
-    },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(PURGE, (state) => {
+      return initialState;
+    });
   },
 });
 
-export const { setCredentials, setUser, setLoading, logout, checkSession } =
-  authSlice.actions;
+export const { setCredentials, setUser, clearAuth } = authSlice.actions;
+
+export const checkSessionThunk =
+  (): ThunkAction<Promise<void>, RootState, undefined, Action<string>> =>
+  async (dispatch, getState) => {
+    const state = getState().auth;
+    if (!state.token || !state.isAuthenticated) return;
+
+    try {
+      const response = await AuthService.checkSession(state.token);
+      if (!response.status.success || !response.data.valid) {
+        await AuthService.logout(state.token);
+        dispatch(clearAuth());
+        logger.info("Session invalid, logged out");
+      }
+    } catch (error) {
+      logger.error("Session check failed:", error);
+      dispatch(clearAuth());
+    }
+  };
+
+export const logoutThunk =
+  (): ThunkAction<Promise<void>, RootState, undefined, Action<string>> =>
+  async (dispatch, getState) => {
+    const state = getState().auth;
+    if (state.token) {
+      try {
+        await AuthService.logout(state.token);
+        logger.info("Logged out successfully");
+      } catch (error) {
+        logger.error("Logout failed:", error);
+      }
+    }
+    dispatch(clearAuth());
+    dispatch({ type: PURGE, key: ["auth"], result: () => null });
+  };
+
 export default authSlice.reducer;
 
 export const selectAuth = (state: { auth: AuthState }) => state.auth;
