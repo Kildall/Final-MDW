@@ -45,7 +45,7 @@ export default function EditProductPage({
         description: "El producto ha sido actualizado correctamente.",
       });
       router.push("/products/list");
-    } catch (error) {
+    } catch {
       toast({
         title: "Error al actualizar",
         description:
