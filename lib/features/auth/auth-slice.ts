@@ -60,7 +60,7 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(PURGE, (state) => {
+    builder.addCase(PURGE, () => {
       return initialState;
     });
   },
