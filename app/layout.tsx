@@ -2,6 +2,7 @@ import "@/app/globals.css";
 import StoreProvider from "@/app/store-provider";
 import { Navbar } from "@/components/ui/navbar/navbar";
 import { Toaster } from "@/components/ui/toaster";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 
@@ -51,6 +52,7 @@ export default function RootLayout({
           </main>
           <Toaster />
         </StoreProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
