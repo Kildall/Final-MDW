@@ -1,6 +1,8 @@
+import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { RootState } from "@/lib/store";
 import { ProductsService } from "@/services/products-service";
 import { Product } from "@/types/api/interfaces";
+import { UpdateProductRequest } from "@/types/api/requests/products";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 export interface ProductsState {
@@ -22,9 +24,12 @@ export const fetchProducts = createAsyncThunk<
   Product[],
   void,
   { rejectValue: string; state: RootState }
->("products/fetchProducts", async (_, { rejectWithValue }) => {
+>("products/fetchProducts", async (_, { rejectWithValue, getState }) => {
   try {
-    const response = await ProductsService.fetchProducts();
+    const state = getState();
+    const token = checkAuthAndGetToken(state);
+
+    const response = await ProductsService.fetchProducts(token);
     if (!response.status.success) {
       return rejectWithValue(response.status.errors.join(", "));
     }
@@ -58,45 +63,60 @@ export const createProduct = createAsyncThunk<
   Product,
   Omit<Product, "id">,
   { rejectValue: string; state: RootState }
->("products/createProduct", async (newProduct, { rejectWithValue }) => {
-  try {
-    const response = await ProductsService.createProduct(newProduct);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
+>(
+  "products/createProduct",
+  async (newProduct, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
+
+      const response = await ProductsService.createProduct(newProduct, token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
     }
-    return response.data;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
   }
-});
+);
 
 export const updateProduct = createAsyncThunk<
   Product,
-  { id: number; updates: Partial<Product> },
+  { request: UpdateProductRequest },
   { rejectValue: string; state: RootState }
->("products/updateProduct", async ({ id, updates }, { rejectWithValue }) => {
-  try {
-    const response = await ProductsService.updateProduct(id, updates);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
+>(
+  "products/updateProduct",
+  async ({ request }, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
+
+      const response = await ProductsService.updateProduct(request, token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
     }
-    return response.data;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
   }
-});
+);
 
 export const deleteProduct = createAsyncThunk<
   number,
   number,
   { rejectValue: string; state: RootState }
->("products/deleteProduct", async (id, { rejectWithValue }) => {
+>("products/deleteProduct", async (id, { rejectWithValue, getState }) => {
   try {
-    await ProductsService.deleteProduct(id);
+    const state = getState();
+    const token = checkAuthAndGetToken(state);
+
+    await ProductsService.deleteProduct(id, token);
     return id;
   } catch (error) {
     return rejectWithValue(

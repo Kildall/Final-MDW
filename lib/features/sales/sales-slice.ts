@@ -1,7 +1,8 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { RootState } from "@/lib/store";
-import { Sale } from "@/types/api/interfaces";
 import { SalesService } from "@/services/sales-service";
+import { Sale } from "@/types/api/interfaces";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 export interface SalesState {
   sales: Sale[];
@@ -17,14 +18,16 @@ export interface SalesState {
     | null;
 }
 
-// Async Thunks
 export const fetchSales = createAsyncThunk<
   Sale[],
   void,
   { rejectValue: string; state: RootState }
->("sales/fetchSales", async (_, { rejectWithValue }) => {
+>("sales/fetchSales", async (_, { rejectWithValue, getState }) => {
   try {
-    const response = await SalesService.fetchSales();
+    const state = getState();
+    const token = checkAuthAndGetToken(state);
+
+    const response = await SalesService.fetchSales(token);
     if (!response.status.success) {
       return rejectWithValue(response.status.errors.join(", "));
     }
@@ -58,9 +61,12 @@ export const createSale = createAsyncThunk<
   Sale,
   Omit<Sale, "id" | "_count">,
   { rejectValue: string; state: RootState }
->("sales/createSale", async (newSale, { rejectWithValue }) => {
+>("sales/createSale", async (newSale, { rejectWithValue, getState }) => {
   try {
-    const response = await SalesService.createSale(newSale);
+    const state = getState();
+    const token = checkAuthAndGetToken(state);
+
+    const response = await SalesService.createSale(newSale, token);
     if (!response.status.success) {
       return rejectWithValue(response.status.errors.join(", "));
     }
@@ -76,27 +82,36 @@ export const updateSale = createAsyncThunk<
   Sale,
   { id: number; updates: Partial<Sale> },
   { rejectValue: string; state: RootState }
->("sales/updateSale", async ({ id, updates }, { rejectWithValue }) => {
-  try {
-    const response = await SalesService.updateSale(id, updates);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
+>(
+  "sales/updateSale",
+  async ({ id, updates }, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
+
+      const response = await SalesService.updateSale(id, updates, token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
     }
-    return response.data;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
   }
-});
+);
 
 export const deleteSale = createAsyncThunk<
   number,
   number,
   { rejectValue: string; state: RootState }
->("sales/deleteSale", async (id, { rejectWithValue }) => {
+>("sales/deleteSale", async (id, { rejectWithValue, getState }) => {
   try {
-    await SalesService.deleteSale(id);
+    const state = getState();
+    const token = checkAuthAndGetToken(state);
+
+    await SalesService.deleteSale(id, token);
     return id;
   } catch (error) {
     return rejectWithValue(

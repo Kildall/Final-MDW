@@ -1,6 +1,7 @@
 import { ApiService } from "@/services/api-service";
 import { ApiResponse } from "@/types/api/api";
 import { Product } from "@/types/api/interfaces";
+import { UpdateProductRequest } from "@/types/api/requests/products";
 import {
   CreateProductResponse,
   DeleteProductResponse,
@@ -29,17 +30,21 @@ export class ProductsService extends ApiService {
   }
 
   static async createProduct(
-    product: Omit<Product, "id" | "_count">
+    product: Omit<Product, "id" | "_count">,
+    token: string
   ): Promise<ApiResponse<CreateProductResponse>> {
-    return this.fetch<ApiResponse<CreateProductResponse>>("/products", {
-      method: "POST",
-      body: JSON.stringify(product),
-    });
+    return this.fetch<ApiResponse<CreateProductResponse>>(
+      "/products",
+      {
+        method: "POST",
+        body: JSON.stringify(product),
+      },
+      token
+    );
   }
 
   static async updateProduct(
-    id: number,
-    updates: Partial<Product>,
+    request: UpdateProductRequest,
     token: string
   ): Promise<ApiResponse<UpdateProductResponse>> {
     return this.fetch<ApiResponse<UpdateProductResponse>>(`/products`, {
@@ -48,18 +53,20 @@ export class ProductsService extends ApiService {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        productId: id,
-        ...updates,
-      }),
+      body: JSON.stringify(request),
     });
   }
 
   static async deleteProduct(
-    id: number
+    id: number,
+    token: string
   ): Promise<ApiResponse<DeleteProductResponse>> {
-    return this.fetch<ApiResponse<DeleteProductResponse>>(`/products/${id}`, {
-      method: "DELETE",
-    });
+    return this.fetch<ApiResponse<DeleteProductResponse>>(
+      `/products/${id}`,
+      {
+        method: "DELETE",
+      },
+      token
+    );
   }
 }

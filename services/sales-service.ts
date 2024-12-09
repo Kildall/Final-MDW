@@ -10,8 +10,10 @@ import {
 } from "@/types/api/responses/sales";
 
 export class SalesService extends ApiService {
-  static async fetchSales(): Promise<ApiResponse<FetchSalesResponse>> {
-    return this.fetch<ApiResponse<FetchSalesResponse>>("/sales");
+  static async fetchSales(
+    token: string
+  ): Promise<ApiResponse<FetchSalesResponse>> {
+    return this.fetch<ApiResponse<FetchSalesResponse>>("/sales", {}, token);
   }
 
   static async fetchSharedSales(): Promise<
@@ -21,29 +23,44 @@ export class SalesService extends ApiService {
   }
 
   static async createSale(
-    sale: Omit<Sale, "id" | "_count">
+    sale: Omit<Sale, "id" | "_count">,
+    token: string
   ): Promise<ApiResponse<CreateSaleResponse>> {
-    return this.fetch<ApiResponse<CreateSaleResponse>>("/sales", {
-      method: "POST",
-      body: JSON.stringify(sale),
-    });
+    return this.fetch<ApiResponse<CreateSaleResponse>>(
+      "/sales",
+      {
+        method: "POST",
+        body: JSON.stringify(sale),
+      },
+      token
+    );
   }
 
   static async updateSale(
     id: number,
-    updates: Partial<Sale>
+    updates: Partial<Sale>,
+    token: string
   ): Promise<ApiResponse<UpdateSaleResponse>> {
-    return this.fetch<ApiResponse<UpdateSaleResponse>>(`/sales/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(updates),
-    });
+    return this.fetch<ApiResponse<UpdateSaleResponse>>(
+      `/sales/${id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(updates),
+      },
+      token
+    );
   }
 
   static async deleteSale(
-    id: number
+    id: number,
+    token: string
   ): Promise<ApiResponse<DeleteSaleResponse>> {
-    return this.fetch<ApiResponse<DeleteSaleResponse>>(`/sales/${id}`, {
-      method: "DELETE",
-    });
+    return this.fetch<ApiResponse<DeleteSaleResponse>>(
+      `/sales/${id}`,
+      {
+        method: "DELETE",
+      },
+      token
+    );
   }
 }

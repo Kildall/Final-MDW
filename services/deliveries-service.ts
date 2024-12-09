@@ -6,10 +6,14 @@ import {
 } from "@/types/api/responses/deliveries";
 
 export class DeliveriesService extends ApiService {
-  static async fetchDeliveries(): Promise<
-    ApiResponse<FetchDeliveriesResponse>
-  > {
-    return this.fetch<ApiResponse<FetchDeliveriesResponse>>("/deliveries");
+  static async fetchDeliveries(
+    token: string
+  ): Promise<ApiResponse<FetchDeliveriesResponse>> {
+    return this.fetch<ApiResponse<FetchDeliveriesResponse>>(
+      "/deliveries",
+      {},
+      token
+    );
   }
 
   static async fetchSharedDeliveries(): Promise<

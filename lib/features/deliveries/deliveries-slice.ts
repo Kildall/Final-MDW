@@ -1,3 +1,4 @@
+import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { RootState } from "@/lib/store";
 import { DeliveriesService } from "@/services/deliveries-service";
 import { Address, Delivery, Employee, Sale } from "@/types/api/interfaces";
@@ -34,9 +35,12 @@ export const fetchDeliveries = createAsyncThunk<
   DeliveryFull[],
   void,
   { rejectValue: string; state: RootState }
->("deliveries/fetchDeliveries", async (_, { rejectWithValue }) => {
+>("deliveries/fetchDeliveries", async (_, { rejectWithValue, getState }) => {
   try {
-    const response = await DeliveriesService.fetchDeliveries();
+    const state = getState();
+    const token = checkAuthAndGetToken(state);
+
+    const response = await DeliveriesService.fetchDeliveries(token);
     if (!response.status.success) {
       return rejectWithValue(response.status.errors.join(", "));
     }

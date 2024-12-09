@@ -1,4 +1,10 @@
 
+import { AuthGuard } from "@/components/auth-guard";
+
 export default function SalesCreatePage() {
-  return <div>Sales Create</div>;
+  return (
+    <AuthGuard>
+      <div>Sales Create</div>
+    </AuthGuard>
+  );
 }

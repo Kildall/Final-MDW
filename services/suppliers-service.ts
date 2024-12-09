@@ -1,6 +1,7 @@
 import { ApiService } from "@/services/api-service";
 import { ApiResponse } from "@/types/api/api";
 import { Supplier } from "@/types/api/interfaces";
+import { UpdateSupplierRequest } from "@/types/api/requests/suppliers";
 import {
   CreateSupplierResponse,
   DeleteSupplierResponse,
@@ -10,8 +11,14 @@ import {
 } from "@/types/api/responses/suppliers";
 
 export class SuppliersService extends ApiService {
-  static async fetchSuppliers(): Promise<ApiResponse<FetchSuppliersResponse>> {
-    return this.fetch<ApiResponse<FetchSuppliersResponse>>("/suppliers");
+  static async fetchSuppliers(
+    token: string
+  ): Promise<ApiResponse<FetchSuppliersResponse>> {
+    return this.fetch<ApiResponse<FetchSuppliersResponse>>(
+      "/suppliers",
+      {},
+      token
+    );
   }
 
   static async fetchSharedSuppliers(): Promise<
@@ -23,22 +30,31 @@ export class SuppliersService extends ApiService {
   }
 
   static async createSupplier(
-    supplier: Omit<Supplier, "id" | "_count">
+    supplier: Omit<Supplier, "id" | "_count">,
+    token: string
   ): Promise<ApiResponse<CreateSupplierResponse>> {
-    return this.fetch<ApiResponse<CreateSupplierResponse>>("/suppliers", {
-      method: "POST",
-      body: JSON.stringify(supplier),
-    });
+    return this.fetch<ApiResponse<CreateSupplierResponse>>(
+      "/suppliers",
+      {
+        method: "POST",
+        body: JSON.stringify(supplier),
+      },
+      token
+    );
   }
 
   static async updateSupplier(
-    id: number,
-    updates: Partial<Supplier>
+    request: UpdateSupplierRequest,
+    token: string
   ): Promise<ApiResponse<UpdateSupplierResponse>> {
-    return this.fetch<ApiResponse<UpdateSupplierResponse>>(`/suppliers/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(updates),
-    });
+    return this.fetch<ApiResponse<UpdateSupplierResponse>>(
+      `/suppliers`,
+      {
+        method: "PUT",
+        body: JSON.stringify(request),
+      },
+      token
+    );
   }
 
   static async deleteSupplier(
