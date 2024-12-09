@@ -14,11 +14,15 @@ import { fetchSales } from "@/lib/features/sales/sales-slice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
+import { useEffect } from "react";
 
 export function SalesTable() {
   const dispatch = useAppDispatch();
-  dispatch(fetchSales());
   const sales = useAppSelector((state) => state.sales.sales);
+
+  useEffect(() => {
+    dispatch(fetchSales());
+  }, [dispatch]);
 
   return (
     <Table>

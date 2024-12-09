@@ -7,25 +7,13 @@ import { useToast } from "@/hooks/use-toast";
 import { selectIsValidSession, setCredentials, setUser } from "@/lib/features/auth/auth-slice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { logger } from "@/lib/logger";
+import { loginSchema, LoginSchema } from "@/lib/schemas/login-schema";
 import { cn } from "@/lib/utils";
 import { AuthService } from "@/services/auth-service";
 import { ErrorMessage, Field, Form, Formik, FormikHelpers } from "formik";
 import { redirect } from "next/navigation";
 import * as React from "react";
-import { z } from "zod";
 import { toFormikValidationSchema } from 'zod-formik-adapter';
-
-const loginSchema = z.object({
-  email: z
-    .string({ required_error: "El email es requerido" })
-    .email("Ingrese un email válido"),
-  password: z
-    .string({ required_error: "La contraseña es requerida" })
-    .min(6, "La contraseña debe tener al menos 6 caracteres"),
-  remember: z.boolean().default(false),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
 
 
 export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
@@ -38,8 +26,8 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLDivE
   }
 
   async function onSubmit(
-    values: LoginFormValues,
-    { setSubmitting }: FormikHelpers<LoginFormValues>
+    values: LoginSchema,
+    { setSubmitting }: FormikHelpers<LoginSchema>
   ) {
     try {
       const response = await AuthService.login({

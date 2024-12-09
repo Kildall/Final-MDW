@@ -1,5 +1,7 @@
 import authReducer from "@/lib/features/auth/auth-slice";
+import customersReducer from "@/lib/features/customers/customers-slice";
 import deliveriesReducer from "@/lib/features/deliveries/deliveries-slice";
+import employeesReducer from "@/lib/features/employees/employee-slice";
 import productsReducer from "@/lib/features/products/products-slice";
 import salesReducer from "@/lib/features/sales/sales-slice";
 import { Action, configureStore, ThunkAction } from "@reduxjs/toolkit";
@@ -28,6 +30,8 @@ const makeStore = () =>
       sales: salesReducer,
       deliveries: deliveriesReducer,
       products: productsReducer,
+      customers: customersReducer,
+      employees: employeesReducer,
       auth: persistedAuthReducer,
     },
     devTools: process.env.NODE_ENV !== "production",

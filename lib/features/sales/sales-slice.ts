@@ -165,7 +165,7 @@ const salesSlice = createSlice({
       })
       .addCase(fetchSales.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.sales = action.payload;
+        (state.sales as Sale[]) = action.payload;
         state.error = null;
         state.currentOperation = null;
       })
@@ -182,7 +182,7 @@ const salesSlice = createSlice({
       })
       .addCase(fetchSharedSales.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.sales = action.payload;
+        (state.sales as Sale[]) = action.payload;
         state.error = null;
         state.currentOperation = null;
       })
@@ -198,7 +198,7 @@ const salesSlice = createSlice({
       })
       .addCase(createSale.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.sales.push(action.payload);
+        (state.sales as Sale[]) = [...(state.sales as Sale[]), action.payload];
         state.error = null;
         state.currentOperation = null;
       })
@@ -218,7 +218,7 @@ const salesSlice = createSlice({
           (sale) => sale.id === action.payload.id
         );
         if (index !== -1) {
-          state.sales[index] = action.payload;
+          (state.sales as Sale[])[index] = action.payload;
         }
         state.error = null;
         state.currentOperation = null;
@@ -235,7 +235,9 @@ const salesSlice = createSlice({
       })
       .addCase(deleteSale.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.sales = state.sales.filter((sale) => sale.id !== action.payload);
+        (state.sales as Sale[]) = (state.sales as Sale[]).filter(
+          (sale) => sale.id !== action.payload
+        );
         state.error = null;
         state.currentOperation = null;
       })

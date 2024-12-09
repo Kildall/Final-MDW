@@ -1,0 +1,138 @@
+import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
+import { RootState } from "@/lib/store";
+import { EmployeesService } from "@/services/employees-service";
+import { Employee } from "@/types/api/interfaces";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+
+export interface EmployeesState {
+  employees: Employee[];
+  employeesById: { [key: number]: Employee };
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error: string | null;
+  totalRevenue: number;
+  currentOperation: "fetch" | "add" | "update" | "delete" | null;
+}
+
+export const fetchEmployees = createAsyncThunk<
+  Employee[],
+  void,
+  { rejectValue: string; state: RootState }
+>("employees/fetchEmployees", async (_, { rejectWithValue, getState }) => {
+  try {
+    const state = getState();
+    const token = checkAuthAndGetToken(state);
+
+    const response = await EmployeesService.fetchEmployees(token);
+    if (!response.status.success) {
+      return rejectWithValue(response.status.errors.join(", "));
+    }
+    return response.data.employees;
+  } catch (error) {
+    return rejectWithValue(
+      error instanceof Error ? error.message : "An error occurred"
+    );
+  }
+});
+
+export const fetchEmployeeById = createAsyncThunk<
+  Employee,
+  number,
+  { rejectValue: string; state: RootState }
+>("employees/fetchEmployeeById", async (id, { rejectWithValue, getState }) => {
+  try {
+    const state = getState();
+    const token = checkAuthAndGetToken(state);
+
+    const response = await EmployeesService.fetchEmployeeById(id, token);
+    if (!response.status.success) {
+      return rejectWithValue(response.status.errors.join(", "));
+    }
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(
+      error instanceof Error ? error.message : "An error occurred"
+    );
+  }
+});
+
+const initialState: EmployeesState = {
+  employees: [],
+  employeesById: {},
+  status: "idle",
+  error: null,
+  totalRevenue: 0,
+  currentOperation: null,
+};
+
+const employeesSlice = createSlice({
+  name: "employees",
+  initialState,
+  reducers: {
+    clearError: (state) => {
+      state.error = null;
+      state.status = "idle";
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchEmployees.pending, (state) => {
+        state.status = "loading";
+        state.currentOperation = "fetch";
+      })
+      .addCase(
+        fetchEmployees.fulfilled,
+        (state, action: PayloadAction<Employee[]>) => {
+          state.status = "succeeded";
+          (state.employees as Employee[]) = action.payload;
+          state.error = null;
+          state.currentOperation = null;
+        }
+      )
+      .addCase(fetchEmployees.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload ?? "Unknown error occurred";
+        state.currentOperation = null;
+      })
+      .addCase(fetchEmployeeById.pending, (state) => {
+        state.status = "loading";
+        state.currentOperation = "fetch";
+      })
+      .addCase(
+        fetchEmployeeById.fulfilled,
+        (state, action: PayloadAction<Employee>) => {
+          state.status = "succeeded";
+          (state.employeesById as { [key: number]: Employee })[
+            action.payload.id
+          ] = action.payload;
+          state.error = null;
+          state.currentOperation = null;
+        }
+      )
+      .addCase(fetchEmployeeById.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload ?? "Unknown error occurred";
+        state.currentOperation = null;
+      });
+  },
+});
+
+export const { clearError } = employeesSlice.actions;
+
+// Export selectors
+export const selectAllEmployees = (state: RootState): Employee[] =>
+  state.employees.employees;
+export const selectEmployeesStatus = (
+  state: RootState
+): EmployeesState["status"] => state.employees.status;
+export const selectEmployeesError = (state: RootState): string | null =>
+  state.employees.error;
+export const selectCurrentOperation = (
+  state: RootState
+): EmployeesState["currentOperation"] => state.employees.currentOperation;
+export const selectEmployeeById = (
+  state: RootState,
+  employeeId: number | undefined
+): Employee | undefined =>
+  employeeId ? state.employees.employeesById[employeeId] : undefined;
+
+export default employeesSlice.reducer;
