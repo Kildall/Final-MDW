@@ -4,6 +4,8 @@ import deliveriesReducer from "@/lib/features/deliveries/deliveries-slice";
 import employeesReducer from "@/lib/features/employees/employee-slice";
 import productsReducer from "@/lib/features/products/products-slice";
 import salesReducer from "@/lib/features/sales/sales-slice";
+import suppliersReducer from "@/lib/features/suppliers/suppliers-slice";
+
 import { Action, configureStore, ThunkAction } from "@reduxjs/toolkit";
 import {
   FLUSH,
@@ -33,6 +35,7 @@ const makeStore = () =>
       customers: customersReducer,
       employees: employeesReducer,
       auth: persistedAuthReducer,
+      suppliers: suppliersReducer,
     },
     devTools: process.env.NODE_ENV !== "production",
     middleware: (getDefaultMiddleware) =>
