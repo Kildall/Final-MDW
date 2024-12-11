@@ -43,11 +43,8 @@ export const fetchProducts = createLoadingThunk<Product[], void>(
 
 export const fetchSharedProducts = createLoadingThunk<Product[], void>(
   "products/fetchSharedProducts",
-  async (_, { rejectWithValue, getState }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const state = getState();
-      const token = checkAuthAndGetToken(state);
-
       const response = await ProductsService.fetchSharedProducts();
       if (!response.status.success) {
         return rejectWithValue(response.status.errors.join(", "));

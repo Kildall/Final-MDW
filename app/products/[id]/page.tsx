@@ -13,7 +13,7 @@ export default function EditProductPage({
 }: {
   params: { id: string };
 }) {
-  const { id } = params; // Extraemos el ID de la URL.
+  const { id } = params;
   const { toast } = useToast();
   const router = useRouter();
   const [updatedProduct, setUpdatedProduct] = useState<Product | null>(null);
@@ -27,7 +27,7 @@ export default function EditProductPage({
     if (product) {
       setUpdatedProduct(product);
     }
-  }, []);
+  }, [dispatch]);
 
   // Función para manejar el envío del formulario
   async function handleSubmit(event: React.FormEvent) {

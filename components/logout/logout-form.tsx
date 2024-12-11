@@ -17,7 +17,7 @@ export function LogoutForm() {
     } else {
       dispatch(logoutThunk());
     }
-  }, []);
+  }, [dispatch]);
 
   return (
     <div className="lg:p-8">

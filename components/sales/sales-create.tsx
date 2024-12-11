@@ -48,7 +48,7 @@ export function SalesCreate() {
         variant: "default",
       });
       router.push("/sales/list");
-    } catch (error) {
+    } catch {
       toast({
         title: "Error al crear la venta",
         description: "Hubo un error al crear la venta",

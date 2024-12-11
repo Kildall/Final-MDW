@@ -31,7 +31,7 @@ export function SalesRead({ id }: SalesReadProps) {
     dispatch(fetchSaleById(id));
     dispatch(fetchProducts());
     dispatch(fetchEmployees());
-  }, [dispatch]);
+  }, [dispatch, id]);
 
   useEffect(() => {
     if (sale && sale.customer) {
@@ -58,7 +58,7 @@ export function SalesRead({ id }: SalesReadProps) {
         variant: "default",
       });
       router.push("/sales/list");
-    } catch (error) {
+    } catch {
       toast({
         title: "Error al actualizar la venta",
         description: "Hubo un error al actualizar la venta",

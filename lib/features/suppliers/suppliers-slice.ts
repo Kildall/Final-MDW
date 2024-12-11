@@ -47,7 +47,7 @@ const suppliersSlice = createSlice({
   initialState,
   reducers: {
     setSuppliers: (state, action: PayloadAction<Supplier[]>) => {
-      state.suppliers = action.payload;
+      (state.suppliers as Supplier[]) = action.payload;
     },
     clearError: (state) => {
       state.error = null;
@@ -62,7 +62,7 @@ const suppliersSlice = createSlice({
       })
       .addCase(fetchSuppliers.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.suppliers = action.payload;
+        (state.suppliers as Supplier[]) = action.payload;
         state.error = null;
         state.currentOperation = null;
       })

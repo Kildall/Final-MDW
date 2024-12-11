@@ -41,13 +41,15 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
         validationSchema={toFormikValidationSchema(createSaleSchema)}
         enableReinitialize
       >
-        {({ values, isSubmitting, isValid, setFieldValue }) => {
+        {({ values, isSubmitting, setFieldValue }) => {
           // Get customer from Redux store using the current customerId from form values
+          // eslint-disable-next-line react-hooks/rules-of-hooks
           const customer = useAppSelector((state) =>
             selectCustomerById(state, values.customerId !== 0 ? values.customerId : undefined)
           );
 
           // Fetch customer data when customerId changes
+          // eslint-disable-next-line react-hooks/rules-of-hooks
           useEffect(() => {
             if (values.customerId !== 0) {
               dispatch(fetchCustomerById(values.customerId));

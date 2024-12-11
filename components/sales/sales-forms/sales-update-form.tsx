@@ -44,7 +44,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
         validationSchema={toFormikValidationSchema(updateSaleSchema)}
         enableReinitialize
       >
-        {({ values, isSubmitting, isValid, setFieldValue }) => (
+        {({ values, isSubmitting }) => (
           <Form className="space-y-6">
             {/* Basic Information */}
             <div className="grid grid-cols-2 gap-4">

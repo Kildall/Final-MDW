@@ -15,6 +15,7 @@ export function createLoadingThunk<ReturnType, ArgType = void>(
   payloadCreator: (
     arg: ArgType,
     thunkAPI: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       rejectWithValue: (error: string) => any;
       getState: () => RootState;
     }
