@@ -4,7 +4,11 @@ import { RootState } from "@/lib/store";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
-export const LoadingIndicator = () => {
+interface LoadingIndicatorProps {
+  position?: 'fixed' | 'relative';
+}
+
+export const LoadingIndicator = ({ position = 'fixed' }: LoadingIndicatorProps) => {
   const isLoading = useSelector((state: RootState) => state.loading.activeThunks.length > 0)
   const [progress, setProgress] = useState(0)
 
@@ -31,8 +35,13 @@ export const LoadingIndicator = () => {
 
   if (!isLoading && progress === 0) return null
 
+  const positionClasses = {
+    fixed: "fixed top-0 left-0 right-0 z-50",
+    relative: "relative w-full"
+  }
+
   return (
-    <div className="fixed top-0 left-0 right-0 z-50">
+    <div className={positionClasses[position]}>
       <Progress value={progress} className="h-1 rounded-none" />
     </div>
   )

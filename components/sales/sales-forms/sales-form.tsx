@@ -8,8 +8,8 @@ import { Customer, DeliveryStatusEnum, Employee, Product, Sale, SaleStatusEnum }
 import { Label } from "@radix-ui/react-label";
 import { ErrorMessage, Field, FieldArray, FieldProps, Form, Formik, FormikHelpers } from "formik";
 import { Info, Plus, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toFormikValidationSchema } from "zod-formik-adapter";
-
 const STATUS_TRANSLATIONS: Record<SaleStatusEnum, string> = {
   'CREATED': 'Creado',
   'IN_PROGRESS': 'En Progreso',
@@ -29,6 +29,7 @@ interface SalesFormProps {
 }
 
 export function SalesForm({ sale, customer, products, employees, onSubmit }: SalesFormProps) {
+  const router = useRouter();
   const initialValues: UpdateSaleSchema = {
     saleId: sale.id,
     products: sale.products?.map(x => ({ productId: x.productId, quantity: x.quantity })) ?? [],
@@ -384,13 +385,21 @@ export function SalesForm({ sale, customer, products, employees, onSubmit }: Sal
               </FieldArray>
             </div>
 
-            <Button
-              className="w-full"
-              type="submit"
-              disabled={isSubmitting || !isValid}
-            >
-              {isSubmitting ? "Guardando..." : "Guardar Cambios"}
-            </Button>
+            <div className="flex flex-row justify-between gap-4">
+              <Button
+                className="w-72 bg-destructive"
+                onClick={() => router.back()}
+              >
+                Volver
+              </Button>
+              <Button
+                className="w-72 bg-teal-500"
+                type="submit"
+                disabled={isSubmitting || !isValid}
+              >
+                {isSubmitting ? "Guardando..." : "Guardar Cambios"}
+              </Button>
+            </div>
           </Form>
         )
         }

@@ -1,6 +1,7 @@
 'use client';
 
 import { SalesForm } from "@/components/sales/sales-forms/sales-form";
+import { InlineLoadingIndicator } from "@/components/ui/inline-loading-indicator";
 import { useToast } from "@/hooks/use-toast";
 import { fetchCustomerById, selectCustomerById } from "@/lib/features/customers/customers-slice";
 import { fetchEmployees } from "@/lib/features/employees/employee-slice";
@@ -43,7 +44,6 @@ export function SalesRead({ id }: SalesReadProps) {
     { setSubmitting }: FormikHelpers<UpdateSaleSchema>
   ) {
     try {
-      console.log(JSON.stringify(values, null, 2));
       const request: UpdateSaleRequest = {
         saleId: values.saleId,
         products: values.products,
@@ -69,7 +69,28 @@ export function SalesRead({ id }: SalesReadProps) {
     }
   }
 
-  if (!sale || !customer || !products) return null;
+  return (
+    <section className="flex-grow pt-12">
+      <div className="flex flex-col gap-4 h-full">
+        <div className="flex-none">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-left font-doto">Datos de la venta</h1>
+          <h2 className="text-lg sm:text-xl md:text-2xl font-light text-left">Si es necesario, puedes actualizar los datos de la venta</h2>
+        </div>
 
-  return <SalesForm sale={sale} customer={customer} products={products} employees={employees} onSubmit={onSubmit} />;
+        {sale && customer && products && employees ? (
+          <div className="flex-grow">
+            <SalesForm
+              sale={sale}
+              customer={customer}
+              products={products}
+              employees={employees}
+              onSubmit={onSubmit}
+            />
+          </div>
+        ) : (
+          <InlineLoadingIndicator />
+        )}
+      </div>
+    </section>
+  );
 }
