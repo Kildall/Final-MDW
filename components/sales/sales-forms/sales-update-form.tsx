@@ -3,6 +3,7 @@ import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { SALE_STATUS } from "@/helpers/sale-status";
 import { updateSaleSchema, UpdateSaleSchema } from "@/lib/schemas/sales/update-sale-schema";
 import { Customer, DeliveryStatusEnum, Employee, Product, Sale, SaleStatusEnum } from "@/types/api/interfaces";
 import { Label } from "@radix-ui/react-label";
@@ -10,15 +11,7 @@ import { ErrorMessage, Field, FieldArray, FieldProps, Form, Formik, FormikHelper
 import { Info, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toFormikValidationSchema } from "zod-formik-adapter";
-const STATUS_TRANSLATIONS: Record<SaleStatusEnum, string> = {
-  'CREATED': 'Creado',
-  'IN_PROGRESS': 'En Progreso',
-  'IN_DELIVERY': 'En Entrega',
-  'PREPARING': 'Preparando',
-  'READY': 'Listo',
-  'CANCELLED': 'Cancelado',
-  'DELIVERED': 'Entregado'
-};
+
 
 interface UpdateSaleFormProps {
   sale: Sale;
@@ -77,10 +70,10 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                       })}
                     >
                       <SelectTrigger>
-                        <SelectValue>{STATUS_TRANSLATIONS[field.value] || field.value}</SelectValue>
+                        <SelectValue>{SALE_STATUS[field.value] || field.value}</SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(STATUS_TRANSLATIONS).map(([value, label]) => (
+                        {Object.entries(SALE_STATUS).map(([value, label]) => (
                           <SelectItem key={value} value={value}>
                             {label}
                           </SelectItem>
@@ -217,7 +210,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => push({ id: 0, quantity: 0 })}
+                      onClick={() => push({ id: 0, quantity: 1 })}
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Agregar Producto
@@ -373,7 +366,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                       onClick={() => push({
                         employeeId: -1,
                         addressId: -1,
-                        startDate: new Date().toISOString(),
+                        startDate: new Date(new Date().getTime() + 30 * 60000).toISOString(),
                         status: 'CREATED' as DeliveryStatusEnum
                       })}
                     >
@@ -395,7 +388,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
               <Button
                 className="w-72 bg-teal-500"
                 type="submit"
-                disabled={isSubmitting || !isValid}
+                disabled={isSubmitting}
               >
                 {isSubmitting ? "Guardando..." : "Guardar Cambios"}
               </Button>
