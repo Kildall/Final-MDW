@@ -2,7 +2,8 @@ import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { RootState } from "@/lib/store";
 import { CustomersService } from "@/services/customers-service";
 import { Customer } from "@/types/api/interfaces";
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createLoadingThunk } from "../loading/loading-utils";
 
 export interface CustomersState {
   customers: Customer[];
@@ -19,47 +20,45 @@ export interface CustomersState {
     | null;
 }
 
-export const fetchCustomers = createAsyncThunk<
-  Customer[],
-  void,
-  { rejectValue: string; state: RootState }
->("customers/fetchCustomers", async (_, { rejectWithValue, getState }) => {
-  try {
-    const state = getState();
-    const token = checkAuthAndGetToken(state);
+export const fetchCustomers = createLoadingThunk<Customer[], void>(
+  "customers/fetchCustomers",
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
 
-    const response = await CustomersService.fetchCustomers(token);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
+      const response = await CustomersService.fetchCustomers(token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data.customers as Customer[];
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
     }
-    return response.data.customers as Customer[];
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
   }
-});
+);
 
-export const fetchCustomerById = createAsyncThunk<
-  Customer,
-  number,
-  { rejectValue: string; state: RootState }
->("customers/fetchCustomerById", async (id, { rejectWithValue, getState }) => {
-  try {
-    const state = getState();
-    const token = checkAuthAndGetToken(state);
+export const fetchCustomerById = createLoadingThunk<Customer, number>(
+  "customers/fetchCustomerById",
+  async (id, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
 
-    const response = await CustomersService.fetchCustomerById(id, token);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
+      const response = await CustomersService.fetchCustomerById(id, token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
     }
-    return response.data;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
   }
-});
+);
 
 const initialState: CustomersState = {
   customers: [],

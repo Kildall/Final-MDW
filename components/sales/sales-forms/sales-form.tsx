@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -24,28 +25,17 @@ interface SalesFormProps {
   customer: Customer;
   products: Product[];
   employees: Employee[];
+  onSubmit: (values: UpdateSaleSchema, { setSubmitting }: FormikHelpers<UpdateSaleSchema>) => void;
 }
 
-export function SalesForm({ sale, customer, products, employees }: SalesFormProps) {
-
-  async function onSubmit(
-    values: UpdateSaleSchema,
-    { setSubmitting }: FormikHelpers<UpdateSaleSchema>
-  ) {
-    try {
-      console.log(values);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
+export function SalesForm({ sale, customer, products, employees, onSubmit }: SalesFormProps) {
   const initialValues: UpdateSaleSchema = {
     saleId: sale.id,
-    products: sale.products?.map(x => ({ id: x.productId, quantity: x.quantity })) ?? [],
+    products: sale.products?.map(x => ({ productId: x.productId, quantity: x.quantity })) ?? [],
     deliveries: sale.deliveries?.map(x => ({
       employeeId: x.employeeId ?? -1,
       addressId: x.addressId,
-      startDate: x.startDate.toISOString(),
+      startDate: new Date(x.startDate).toISOString(),
       status: x.status
     })) ?? [],
     employeeId: sale.employeeId,
@@ -159,8 +149,8 @@ export function SalesForm({ sale, customer, products, employees }: SalesFormProp
                     {values.products.map((product, index) => (
                       <div key={index} className="flex gap-4 items-end">
                         <div className="flex-1">
-                          <Label htmlFor={`products.${index}.id`}>Producto</Label>
-                          <Field name={`products.${index}.id`}>
+                          <Label htmlFor={`products.${index}.productId`}>Producto</Label>
+                          <Field name={`products.${index}.productId`}>
                             {({ field }: FieldProps) => (
                               <Select
                                 value={field.value?.toString()}
@@ -171,7 +161,7 @@ export function SalesForm({ sale, customer, products, employees }: SalesFormProp
                                       target: {
                                         name: `products.${index}`,
                                         value: {
-                                          id: selectedProduct.id,
+                                          productId: selectedProduct.id,
                                           quantity: values.products[index]?.quantity || 0
                                         }
                                       }
@@ -338,11 +328,19 @@ export function SalesForm({ sale, customer, products, employees }: SalesFormProp
                               Fecha de Inicio
                             </Label>
                             <Field
-                              className="dark:bg-dark-bg mt-1 block w-full rounded border-gray-400 text-sm dark:border-gray-600 dark:text-white dark:[color-scheme:dark]"
                               name={`deliveries.${index}.startDate`}
-                              type="datetime-local"
-                              as={Input}
-                            />
+                            >
+                              {({ field }: FieldProps) => (
+                                <DateTimePicker
+                                  value={field.value ? new Date(field.value) : undefined}
+                                  onChange={(date) => {
+                                    field.onChange({
+                                      target: { name: `deliveries.${index}.startDate`, value: date ? date.toISOString() : "" }
+                                    });
+                                  }}
+                                />
+                              )}
+                            </Field>
                             <ErrorMessage
                               name={`deliveries.${index}.startDate`}
                               component={Label}

@@ -1,9 +1,11 @@
 import { ApiService } from "@/services/api-service";
 import { ApiResponse } from "@/types/api/api";
 import { Sale } from "@/types/api/interfaces";
+import { UpdateSaleRequest } from "@/types/api/requests/sales";
 import {
   CreateSaleResponse,
   DeleteSaleResponse,
+  FetchSalesByIdResponse,
   FetchSalesResponse,
   FetchSharedSalesResponse,
   UpdateSaleResponse,
@@ -14,6 +16,17 @@ export class SalesService extends ApiService {
     token: string
   ): Promise<ApiResponse<FetchSalesResponse>> {
     return this.fetch<ApiResponse<FetchSalesResponse>>("/sales", {}, token);
+  }
+
+  static async fetchSalesById(
+    id: number,
+    token: string
+  ): Promise<ApiResponse<FetchSalesByIdResponse>> {
+    return this.fetch<ApiResponse<FetchSalesByIdResponse>>(
+      `/sales/${id}`,
+      {},
+      token
+    );
   }
 
   static async fetchSharedSales(): Promise<
@@ -37,15 +50,14 @@ export class SalesService extends ApiService {
   }
 
   static async updateSale(
-    id: number,
-    updates: Partial<Sale>,
+    request: UpdateSaleRequest,
     token: string
   ): Promise<ApiResponse<UpdateSaleResponse>> {
     return this.fetch<ApiResponse<UpdateSaleResponse>>(
-      `/sales/${id}`,
+      `/sales`,
       {
-        method: "PATCH",
-        body: JSON.stringify(updates),
+        method: "PUT",
+        body: JSON.stringify(request),
       },
       token
     );

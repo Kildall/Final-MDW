@@ -2,7 +2,8 @@ import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { RootState } from "@/lib/store";
 import { EmployeesService } from "@/services/employees-service";
 import { Employee } from "@/types/api/interfaces";
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createLoadingThunk } from "../loading/loading-utils";
 
 export interface EmployeesState {
   employees: Employee[];
@@ -13,47 +14,45 @@ export interface EmployeesState {
   currentOperation: "fetch" | "add" | "update" | "delete" | null;
 }
 
-export const fetchEmployees = createAsyncThunk<
-  Employee[],
-  void,
-  { rejectValue: string; state: RootState }
->("employees/fetchEmployees", async (_, { rejectWithValue, getState }) => {
-  try {
-    const state = getState();
-    const token = checkAuthAndGetToken(state);
+export const fetchEmployees = createLoadingThunk<Employee[], void>(
+  "employees/fetchEmployees",
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
 
-    const response = await EmployeesService.fetchEmployees(token);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
+      const response = await EmployeesService.fetchEmployees(token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data.employees;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
     }
-    return response.data.employees;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
   }
-});
+);
 
-export const fetchEmployeeById = createAsyncThunk<
-  Employee,
-  number,
-  { rejectValue: string; state: RootState }
->("employees/fetchEmployeeById", async (id, { rejectWithValue, getState }) => {
-  try {
-    const state = getState();
-    const token = checkAuthAndGetToken(state);
+export const fetchEmployeeById = createLoadingThunk<Employee, number>(
+  "employees/fetchEmployeeById",
+  async (id, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
 
-    const response = await EmployeesService.fetchEmployeeById(id, token);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
+      const response = await EmployeesService.fetchEmployeeById(id, token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
     }
-    return response.data;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
   }
-});
+);
 
 const initialState: EmployeesState = {
   employees: [],

@@ -3,7 +3,8 @@ import { RootState } from "@/lib/store";
 import { ProductsService } from "@/services/products-service";
 import { Product } from "@/types/api/interfaces";
 import { UpdateProductRequest } from "@/types/api/requests/products";
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
+import { createLoadingThunk } from "../loading/loading-utils";
 
 export interface ProductsState {
   products: Product[];
@@ -20,50 +21,47 @@ export interface ProductsState {
 }
 
 // Async Thunks
-export const fetchProducts = createAsyncThunk<
-  Product[],
-  void,
-  { rejectValue: string; state: RootState }
->("products/fetchProducts", async (_, { rejectWithValue, getState }) => {
-  try {
-    const state = getState();
-    const token = checkAuthAndGetToken(state);
+export const fetchProducts = createLoadingThunk<Product[], void>(
+  "products/fetchProducts",
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
 
-    const response = await ProductsService.fetchProducts(token);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
+      const response = await ProductsService.fetchProducts(token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data.products;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
     }
-    return response.data.products;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
   }
-});
+);
 
-export const fetchSharedProducts = createAsyncThunk<
-  Product[],
-  void,
-  { rejectValue: string; state: RootState }
->("products/fetchSharedProducts", async (_, { rejectWithValue }) => {
-  try {
-    const response = await ProductsService.fetchSharedProducts();
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
+export const fetchSharedProducts = createLoadingThunk<Product[], void>(
+  "products/fetchSharedProducts",
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
+
+      const response = await ProductsService.fetchSharedProducts();
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data.products;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
     }
-    return response.data.products;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
   }
-});
+);
 
-export const createProduct = createAsyncThunk<
-  Product,
-  Omit<Product, "id">,
-  { rejectValue: string; state: RootState }
->(
+export const createProduct = createLoadingThunk<Product, Omit<Product, "id">>(
   "products/createProduct",
   async (newProduct, { rejectWithValue, getState }) => {
     try {
@@ -83,10 +81,9 @@ export const createProduct = createAsyncThunk<
   }
 );
 
-export const updateProduct = createAsyncThunk<
+export const updateProduct = createLoadingThunk<
   Product,
-  { request: UpdateProductRequest },
-  { rejectValue: string; state: RootState }
+  { request: UpdateProductRequest }
 >(
   "products/updateProduct",
   async ({ request }, { rejectWithValue, getState }) => {
@@ -107,23 +104,22 @@ export const updateProduct = createAsyncThunk<
   }
 );
 
-export const deleteProduct = createAsyncThunk<
-  number,
-  number,
-  { rejectValue: string; state: RootState }
->("products/deleteProduct", async (id, { rejectWithValue, getState }) => {
-  try {
-    const state = getState();
-    const token = checkAuthAndGetToken(state);
+export const deleteProduct = createLoadingThunk<number, number>(
+  "products/deleteProduct",
+  async (id, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
 
-    await ProductsService.deleteProduct(id, token);
-    return id;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
+      await ProductsService.deleteProduct(id, token);
+      return id;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    }
   }
-});
+);
 
 const initialState: ProductsState = {
   products: [],

@@ -2,10 +2,13 @@ import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { RootState } from "@/lib/store";
 import { SalesService } from "@/services/sales-service";
 import { Sale } from "@/types/api/interfaces";
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { UpdateSaleRequest } from "@/types/api/requests/sales";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createLoadingThunk } from "../loading/loading-utils";
 
 export interface SalesState {
   sales: Sale[];
+  salesById: Record<Sale["id"], Sale>;
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
   totalRevenue: number;
@@ -18,78 +21,51 @@ export interface SalesState {
     | null;
 }
 
-export const fetchSales = createAsyncThunk<
-  Sale[],
-  void,
-  { rejectValue: string; state: RootState }
->("sales/fetchSales", async (_, { rejectWithValue, getState }) => {
-  try {
-    const state = getState();
-    const token = checkAuthAndGetToken(state);
-
-    const response = await SalesService.fetchSales(token);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
-    }
-    return response.data.sales;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
-  }
-});
-
-export const fetchSharedSales = createAsyncThunk<
-  Sale[],
-  void,
-  { rejectValue: string; state: RootState }
->("sales/fetchSharedSales", async (_, { rejectWithValue }) => {
-  try {
-    const response = await SalesService.fetchSharedSales();
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
-    }
-    return response.data.sales;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
-  }
-});
-
-export const createSale = createAsyncThunk<
-  Sale,
-  Omit<Sale, "id" | "_count">,
-  { rejectValue: string; state: RootState }
->("sales/createSale", async (newSale, { rejectWithValue, getState }) => {
-  try {
-    const state = getState();
-    const token = checkAuthAndGetToken(state);
-
-    const response = await SalesService.createSale(newSale, token);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
-    }
-    return response.data;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
-  }
-});
-
-export const updateSale = createAsyncThunk<
-  Sale,
-  { id: number; updates: Partial<Sale> },
-  { rejectValue: string; state: RootState }
->(
-  "sales/updateSale",
-  async ({ id, updates }, { rejectWithValue, getState }) => {
+export const fetchSales = createLoadingThunk<Sale[], void>(
+  "sales/fetchSales",
+  async (_, { rejectWithValue, getState }) => {
     try {
       const state = getState();
       const token = checkAuthAndGetToken(state);
 
-      const response = await SalesService.updateSale(id, updates, token);
+      const response = await SalesService.fetchSales(token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data.sales;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    }
+  }
+);
+
+export const fetchSharedSales = createLoadingThunk<Sale[], void>(
+  "sales/fetchSharedSales",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await SalesService.fetchSharedSales();
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data.sales;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    }
+  }
+);
+
+export const createSale = createLoadingThunk<Sale, Omit<Sale, "id" | "_count">>(
+  "sales/createSale",
+  async (newSale, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
+
+      const response = await SalesService.createSale(newSale, token);
       if (!response.status.success) {
         return rejectWithValue(response.status.errors.join(", "));
       }
@@ -102,26 +78,66 @@ export const updateSale = createAsyncThunk<
   }
 );
 
-export const deleteSale = createAsyncThunk<
-  number,
-  number,
-  { rejectValue: string; state: RootState }
->("sales/deleteSale", async (id, { rejectWithValue, getState }) => {
-  try {
-    const state = getState();
-    const token = checkAuthAndGetToken(state);
+export const updateSale = createLoadingThunk<Sale, UpdateSaleRequest>(
+  "sales/updateSale",
+  async (request, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
 
-    await SalesService.deleteSale(id, token);
-    return id;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
+      const response = await SalesService.updateSale(request, token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    }
   }
-});
+);
+
+export const deleteSale = createLoadingThunk<number, number>(
+  "sales/deleteSale",
+  async (id, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
+
+      await SalesService.deleteSale(id, token);
+      return id;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    }
+  }
+);
+
+export const fetchSaleById = createLoadingThunk<Sale, number>(
+  "sales/fetchSaleById",
+  async (id, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
+
+      const response = await SalesService.fetchSalesById(id, token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    }
+  }
+);
 
 const initialState: SalesState = {
   sales: [],
+  salesById: {},
   status: "idle",
   error: null,
   totalRevenue: 0,
@@ -170,6 +186,26 @@ const salesSlice = createSlice({
         state.currentOperation = null;
       })
       .addCase(fetchSales.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload ?? "Unknown error occurred";
+        state.currentOperation = null;
+      });
+    builder
+      .addCase(fetchSaleById.pending, (state) => {
+        state.status = "loading";
+        state.currentOperation = "fetch-shared";
+      })
+      .addCase(
+        fetchSaleById.fulfilled,
+        (state, action: PayloadAction<Sale>) => {
+          state.status = "succeeded";
+          (state.salesById as { [key: number]: Sale })[action.payload.id] =
+            action.payload;
+          state.error = null;
+          state.currentOperation = null;
+        }
+      )
+      .addCase(fetchSaleById.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload ?? "Unknown error occurred";
         state.currentOperation = null;
@@ -265,6 +301,6 @@ export const selectCurrentOperation = (
 export const selectSaleById = (
   state: RootState,
   saleId: number
-): Sale | undefined => state.sales.sales.find((sale) => sale.id === saleId);
+): Sale | undefined => state.sales.salesById[saleId];
 
 export default salesSlice.reducer;

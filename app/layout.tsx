@@ -1,5 +1,6 @@
 import "@/app/globals.css";
 import StoreProvider from "@/app/store-provider";
+import { LoadingIndicator } from "@/components/loading-indicator";
 import { SessionChecker } from "@/components/session-checker";
 import { Navbar } from "@/components/ui/navbar/navbar";
 import { Toaster } from "@/components/ui/toaster";
@@ -53,6 +54,7 @@ export default function RootLayout({
           </main>
           <Toaster />
           <SessionChecker />
+          <LoadingIndicator />
         </StoreProvider>
         <SpeedInsights />
       </body>

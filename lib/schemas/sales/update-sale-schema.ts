@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const saleProductSchema = z.object({
-  id: z.number({
+  productId: z.number({
     required_error: "El ID es requerido",
     invalid_type_error: "El ID debe ser un número",
   }),

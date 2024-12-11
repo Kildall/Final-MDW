@@ -4,6 +4,8 @@ export interface FetchSalesResponse {
   sales: Sale[];
 }
 
+export interface FetchSalesByIdResponse extends Sale {}
+
 export interface FetchSharedSalesResponse extends FetchSalesResponse {}
 
 export interface CreateSaleResponse extends Sale {}

@@ -2,7 +2,8 @@ import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { RootState } from "@/lib/store";
 import { DeliveriesService } from "@/services/deliveries-service";
 import { Address, Delivery, Employee, Sale } from "@/types/api/interfaces";
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createLoadingThunk } from "../loading/loading-utils";
 
 // Break circular dependencies while keeping all fields
 type DeliveryWithoutRelations = Omit<Delivery, "sale" | "employee" | "address">;
@@ -31,44 +32,42 @@ export interface DeliveriesState {
     | null;
 }
 
-export const fetchDeliveries = createAsyncThunk<
-  DeliveryFull[],
-  void,
-  { rejectValue: string; state: RootState }
->("deliveries/fetchDeliveries", async (_, { rejectWithValue, getState }) => {
-  try {
-    const state = getState();
-    const token = checkAuthAndGetToken(state);
+export const fetchDeliveries = createLoadingThunk<DeliveryFull[], void>(
+  "deliveries/fetchDeliveries",
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
 
-    const response = await DeliveriesService.fetchDeliveries(token);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
+      const response = await DeliveriesService.fetchDeliveries(token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data.deliveries as DeliveryFull[];
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
     }
-    return response.data.deliveries as DeliveryFull[];
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
   }
-});
+);
 
-export const fetchSharedDeliveries = createAsyncThunk<
-  DeliveryFull[],
-  void,
-  { rejectValue: string; state: RootState }
->("deliveries/fetchSharedDeliveries", async (_, { rejectWithValue }) => {
-  try {
-    const response = await DeliveriesService.fetchSharedDeliveries();
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
+export const fetchSharedDeliveries = createLoadingThunk<DeliveryFull[], void>(
+  "deliveries/fetchSharedDeliveries",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await DeliveriesService.fetchSharedDeliveries();
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data.deliveries as DeliveryFull[];
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
     }
-    return response.data.deliveries as DeliveryFull[];
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
   }
-});
+);
 
 const initialState: DeliveriesState = {
   deliveries: [],
