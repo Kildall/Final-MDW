@@ -20,7 +20,7 @@ const STATUS_TRANSLATIONS: Record<SaleStatusEnum, string> = {
   'DELIVERED': 'Entregado'
 };
 
-interface SalesFormProps {
+interface UpdateSaleFormProps {
   sale: Sale;
   customer: Customer;
   products: Product[];
@@ -28,7 +28,7 @@ interface SalesFormProps {
   onSubmit: (values: UpdateSaleSchema, { setSubmitting }: FormikHelpers<UpdateSaleSchema>) => void;
 }
 
-export function SalesForm({ sale, customer, products, employees, onSubmit }: SalesFormProps) {
+export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }: UpdateSaleFormProps) {
   const router = useRouter();
   const initialValues: UpdateSaleSchema = {
     saleId: sale.id,

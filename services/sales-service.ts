@@ -1,7 +1,9 @@
 import { ApiService } from "@/services/api-service";
 import { ApiResponse } from "@/types/api/api";
-import { Sale } from "@/types/api/interfaces";
-import { UpdateSaleRequest } from "@/types/api/requests/sales";
+import {
+  CreateSaleRequest,
+  UpdateSaleRequest,
+} from "@/types/api/requests/sales";
 import {
   CreateSaleResponse,
   DeleteSaleResponse,
@@ -36,14 +38,14 @@ export class SalesService extends ApiService {
   }
 
   static async createSale(
-    sale: Omit<Sale, "id" | "_count">,
+    request: CreateSaleRequest,
     token: string
   ): Promise<ApiResponse<CreateSaleResponse>> {
     return this.fetch<ApiResponse<CreateSaleResponse>>(
       "/sales",
       {
         method: "POST",
-        body: JSON.stringify(sale),
+        body: JSON.stringify(request),
       },
       token
     );

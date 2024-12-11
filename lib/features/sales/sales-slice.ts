@@ -2,7 +2,10 @@ import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { RootState } from "@/lib/store";
 import { SalesService } from "@/services/sales-service";
 import { Sale } from "@/types/api/interfaces";
-import { UpdateSaleRequest } from "@/types/api/requests/sales";
+import {
+  CreateSaleRequest,
+  UpdateSaleRequest,
+} from "@/types/api/requests/sales";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { createLoadingThunk } from "../loading/loading-utils";
 
@@ -58,14 +61,14 @@ export const fetchSharedSales = createLoadingThunk<Sale[], void>(
   }
 );
 
-export const createSale = createLoadingThunk<Sale, Omit<Sale, "id" | "_count">>(
+export const createSale = createLoadingThunk<Sale, CreateSaleRequest>(
   "sales/createSale",
-  async (newSale, { rejectWithValue, getState }) => {
+  async (request, { rejectWithValue, getState }) => {
     try {
       const state = getState();
       const token = checkAuthAndGetToken(state);
 
-      const response = await SalesService.createSale(newSale, token);
+      const response = await SalesService.createSale(request, token);
       if (!response.status.success) {
         return rejectWithValue(response.status.errors.join(", "));
       }

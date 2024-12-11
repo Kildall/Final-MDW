@@ -1,6 +1,6 @@
 'use client';
 
-import { SalesForm } from "@/components/sales/sales-forms/sales-form";
+import { UpdateSaleForm } from "@/components/sales/sales-forms/sales-update-form";
 import { InlineLoadingIndicator } from "@/components/ui/inline-loading-indicator";
 import { useToast } from "@/hooks/use-toast";
 import { fetchCustomerById, selectCustomerById } from "@/lib/features/customers/customers-slice";
@@ -79,7 +79,7 @@ export function SalesRead({ id }: SalesReadProps) {
 
         {sale && customer && products && employees ? (
           <div className="flex-grow">
-            <SalesForm
+            <UpdateSaleForm
               sale={sale}
               customer={customer}
               products={products}
