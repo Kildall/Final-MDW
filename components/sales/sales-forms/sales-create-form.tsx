@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { fetchCustomerById, selectCustomerById } from "@/lib/features/customers/customers-slice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
@@ -31,6 +32,23 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
     deliveries: [],
     employeeId: 0,
     startDate: new Date(new Date().getTime() + 30 * 60000).toISOString(),
+  };
+
+  const calculateLineTotal = (productId: number, quantity: number) => {
+    const product = products.find(p => p.id === productId);
+    return product ? product.price * quantity : 0;
+  };
+
+  // Function to calculate total price
+  const calculateTotal = (productList: Array<{ productId: number, quantity: number }>) => {
+    return productList.reduce((sum, item) => sum + calculateLineTotal(item.productId, item.quantity), 0);
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS'
+    }).format(price);
   };
 
   return (
@@ -139,30 +157,36 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
 
               {/* Products Section */}
               <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Label>Productos</Label>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-4 w-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Seleccione productos del catálogo y especifique la cantidad
-                    </TooltipContent>
-                  </Tooltip>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Label>Productos</Label>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Seleccione productos del catálogo y especifique la cantidad
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="text-lg font-semibold">
+                    Total: {formatPrice(calculateTotal(values.products))}
+                  </div>
                 </div>
 
                 <FieldArray name="products">
                   {({ push, remove }) => (
                     <div className="space-y-2">
-                      {values.products.map((product, index) => (
+                      {Array.isArray(values.products) && values.products.map((product, index) => (
                         <div key={index} className="flex gap-4 items-end">
                           <div className="flex-1">
                             <Label htmlFor={`products.${index}.productId`}>Producto</Label>
                             <Field name={`products.${index}.productId`}>
                               {({ field }: FieldProps) => (
                                 <Select
-                                  value={field.value?.toString()}
+                                  value={field.value ? field.value.toString() : "0"}
                                   onValueChange={(value) => {
+                                    setFieldValue(`products.${index}.quantity`, 1);
                                     field.onChange({
                                       target: {
                                         name: `products.${index}.productId`,
@@ -175,9 +199,9 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                                     <SelectValue placeholder="Seleccionar producto" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {products.map((p) => (
-                                      <SelectItem key={p.id} value={p.id.toString()}>
-                                        {p.name}
+                                    {products.filter(p => p.quantity > 0).map((p) => (
+                                      <SelectItem key={p.id} value={p.id.toString()} disabled={values.products.map(p => p.productId).includes(p.id)}>
+                                        {`${p.name} - ${formatPrice(p.price)}`}
                                       </SelectItem>
                                     ))}
                                   </SelectContent>
@@ -192,17 +216,48 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                           </div>
                           <div className="flex-1">
                             <Label htmlFor={`products.${index}.quantity`}>Cantidad</Label>
-                            <Field
-                              name={`products.${index}.quantity`}
-                              placeholder="Cantidad"
-                              type="number"
-                              as={Input}
-                            />
+                            <Field name={`products.${index}.quantity`}>
+                              {({ field }: FieldProps) => {
+                                const selectedProduct = products.find(p => p.id === values.products[index].productId);
+                                const maxQuantity = selectedProduct?.quantity || 100;
+
+                                return (
+                                  <div className="flex items-center gap-2">
+                                    <Slider
+                                      value={[field.value]}
+                                      onValueChange={(value) => {
+                                        setFieldValue(`products.${index}.quantity`, value[0]);
+                                      }}
+                                      disabled={!selectedProduct}
+                                      min={1}
+                                      max={maxQuantity}
+                                      step={1}
+                                    />
+                                    <Input
+                                      type="number"
+                                      min={1}
+                                      max={maxQuantity}
+                                      disabled={!selectedProduct}
+                                      value={field.value}
+                                      className="w-20"
+                                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                        const value = parseInt(e.target.value) || 1;
+                                        setFieldValue(`products.${index}.quantity`, Math.min(Math.max(1, value), maxQuantity));
+                                      }}
+                                    />
+                                  </div>
+                                );
+                              }}
+                            </Field>
                             <ErrorMessage
                               name={`products.${index}.quantity`}
                               component={Label}
                               className="text-red-500"
                             />
+                          </div>
+                          <div className="flex-1">
+                            <Label>Subtotal</Label>
+                            <Input readOnly value={formatPrice(calculateLineTotal(product.productId, product.quantity))} />
                           </div>
                           <Button
                             type="button"
@@ -216,7 +271,8 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => push({ productId: -1, quantity: 1 })}
+                        disabled={values.products.length === products.filter(p => p.quantity > 0).length}
+                        onClick={() => push({ productId: products.filter(p => p.quantity > 0).find(p => !values.products.map(p => p.productId).includes(p.id))!.id, quantity: 1 })}
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Agregar Producto

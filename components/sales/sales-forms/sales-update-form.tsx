@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SALE_STATUS } from "@/helpers/sale-status";
 import { updateSaleSchema, UpdateSaleSchema } from "@/lib/schemas/sales/update-sale-schema";
@@ -36,6 +37,22 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
     status: sale.status
   };
 
+  const calculateLineTotal = (productId: number, quantity: number) => {
+    const product = products.find(p => p.id === productId);
+    return product ? product.price * quantity : 0;
+  };
+
+  const calculateTotal = (productList: Array<{ productId: number, quantity: number }>) => {
+    return productList.reduce((sum, item) => sum + calculateLineTotal(item.productId, item.quantity), 0);
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS'
+    }).format(price);
+  };
+
   return (
     <TooltipProvider>
       <Formik
@@ -44,7 +61,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
         validationSchema={toFormikValidationSchema(updateSaleSchema)}
         enableReinitialize
       >
-        {({ values, isSubmitting }) => (
+        {({ values, isSubmitting, setFieldValue }) => (
           <Form className="space-y-6">
             {/* Basic Information */}
             <div className="grid grid-cols-2 gap-4">
@@ -125,7 +142,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2">
                 <Label>Productos</Label>
                 <Tooltip>
                   <TooltipTrigger>
@@ -135,6 +152,9 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                     Seleccione productos del catálogo y especifique la cantidad
                   </TooltipContent>
                 </Tooltip>
+                <div className="text-lg font-semibold">
+                  Total: {formatPrice(calculateTotal(values.products))}
+                </div>
               </div>
 
               <FieldArray name="products">
@@ -147,18 +167,13 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                           <Field name={`products.${index}.productId`}>
                             {({ field }: FieldProps) => (
                               <Select
-                                value={field.value.toString()}
+                                value={field.value?.toString()}
                                 onValueChange={(value) => {
                                   const selectedProduct = products.find(p => p.id.toString() === value);
                                   if (selectedProduct) {
-                                    field.onChange({
-                                      target: {
-                                        name: `products.${index}`,
-                                        value: {
-                                          productId: selectedProduct.id,
-                                          quantity: values.products[index]?.quantity || 0
-                                        }
-                                      }
+                                    setFieldValue(`products.${index}`, {
+                                      productId: selectedProduct.id,
+                                      quantity: 1
                                     });
                                   }
                                 }}
@@ -167,34 +182,76 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                                   <SelectValue placeholder="Seleccionar producto" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {
-                                    !products.map(p => p.id).includes(field.value) &&
+                                  {!products.map(p => p.id).includes(field.value) &&
                                     <SelectItem key={field.value} value={field.value.toString()}>
                                       Producto ha sido eliminado
                                     </SelectItem>
                                   }
-                                  {products.map((p) => (
-                                    <SelectItem key={p.id} value={p.id.toString()}>
-                                      {p.name}
+                                  {products.filter(p => p.quantity > 0).map((p) => (
+                                    <SelectItem
+                                      key={p.id}
+                                      value={p.id.toString()}
+                                      disabled={values.products.some(vp => vp.productId === p.id && vp !== product)}
+                                    >
+                                      {`${p.name} - ${formatPrice(p.price)}`}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
                               </Select>
                             )}
                           </Field>
+                          <ErrorMessage
+                            name={`products.${index}.productId`}
+                            component={Label}
+                            className="text-red-500"
+                          />
                         </div>
                         <div className="flex-1">
                           <Label htmlFor={`products.${index}.quantity`}>Cantidad</Label>
-                          <Field
-                            name={`products.${index}.quantity`}
-                            placeholder="Cantidad"
-                            type="number"
-                            as={Input}
-                          />
+                          <Field name={`products.${index}.quantity`}>
+                            {({ field }: FieldProps) => {
+                              const selectedProduct = products.find(p => p.id === values.products[index].productId);
+                              const maxQuantity = selectedProduct?.quantity || 100;
+
+                              return (
+                                <div className="flex items-center gap-2">
+                                  <Slider
+                                    value={[field.value]}
+                                    onValueChange={(value) => {
+                                      setFieldValue(`products.${index}.quantity`, value[0]);
+                                    }}
+                                    disabled={!selectedProduct}
+                                    min={1}
+                                    max={maxQuantity}
+                                    step={1}
+                                  />
+                                  <Input
+                                    type="number"
+                                    min={1}
+                                    max={maxQuantity}
+                                    disabled={!selectedProduct}
+                                    value={field.value}
+                                    className="w-20"
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                      const value = parseInt(e.target.value) || 1;
+                                      setFieldValue(`products.${index}.quantity`, Math.min(Math.max(1, value), maxQuantity));
+                                    }}
+                                  />
+                                </div>
+                              );
+                            }}
+                          </Field>
                           <ErrorMessage
                             name={`products.${index}.quantity`}
                             component={Label}
                             className="text-red-500"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <Label>Subtotal</Label>
+                          <Input
+                            readOnly
+                            value={formatPrice(calculateLineTotal(product.productId, product.quantity))}
                           />
                         </div>
                         <Tooltip>
@@ -216,7 +273,13 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => push({ id: 0, quantity: 1 })}
+                      disabled={values.products.length === products.filter(p => p.quantity > 0).length}
+                      onClick={() => push({
+                        productId: products.find(p =>
+                          p.quantity > 0 && !values.products.some(vp => vp.productId === p.id)
+                        )?.id || 0,
+                        quantity: 1
+                      })}
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Agregar Producto
@@ -224,6 +287,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                   </div>
                 )}
               </FieldArray>
+              <ErrorMessage name="products" component={Label} className="text-red-500" />
             </div>
 
             {/* Deliveries Section */}
