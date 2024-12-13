@@ -18,10 +18,10 @@ export default function LoginPage() {
             squareSize={4}
             gridGap={6}
             color="#1d68c3"
-            maxOpacity={0.3}
-            flickerChance={0.05}
-            height={850}
-            width={850}
+            maxOpacity={0.5}
+            flickerChance={0.2}
+            height={2160}
+            width={2160}
           />
         </div>
         <div className="relative z-1 flex items-center text-lg font-medium">

@@ -20,7 +20,7 @@ export function LogoutForm() {
   }, [dispatch]);
 
   return (
-    <div className="lg:p-8">
+    <div className="lg:p-8 w-full">
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
         <div className="flex flex-col space-y-4 text-center">
           <svg
