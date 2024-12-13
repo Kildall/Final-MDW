@@ -39,12 +39,14 @@ export function SalesTable() {
     }).format(amount);
   };
 
-  function handleDelete(id: number) {
-    dispatch(deleteSale(id));
-    toast({
-      title: "Venta eliminada",
-      description: "La venta ha sido eliminada correctamente.",
-    });
+  async function handleDelete(id: number) {
+    const result = await dispatch(deleteSale(id));
+    if (result.meta.requestStatus === "fulfilled") {
+      toast({
+        title: "Venta eliminada",
+        description: "La venta ha sido eliminada correctamente.",
+      });
+    }
   }
 
   return (

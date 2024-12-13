@@ -51,13 +51,15 @@ export function SalesRead({ id }: SalesReadProps) {
         employeeId: values.employeeId,
         status: values.status
       };
-      await dispatch(updateSale(request));
-      toast({
-        title: "Venta actualizada correctamente",
-        description: "La venta ha sido actualizada correctamente",
-        variant: "default",
-      });
-      router.push("/sales/list");
+      const result = await dispatch(updateSale(request));
+      if (result.meta.requestStatus === "fulfilled") {
+        toast({
+          title: "Venta actualizada correctamente",
+          description: "La venta ha sido actualizada correctamente",
+          variant: "default",
+        });
+        router.push("/sales/list");
+      }
     } catch {
       toast({
         title: "Error al actualizar la venta",

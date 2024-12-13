@@ -40,14 +40,15 @@ export function SalesCreate() {
         employeeId: values.employeeId,
         startDate: values.startDate
       };
-      console.log(request);
-      await dispatch(createSale(request));
-      toast({
-        title: "Venta creada correctamente",
-        description: "La venta ha sido creada correctamente",
-        variant: "default",
-      });
-      router.push("/sales/list");
+      const result = await dispatch(createSale(request));
+      if (result.meta.requestStatus === "fulfilled") {
+        toast({
+          title: "Venta creada correctamente",
+          description: "La venta ha sido creada correctamente",
+          variant: "default",
+        });
+        router.push("/sales/list");
+      }
     } catch {
       toast({
         title: "Error al crear la venta",

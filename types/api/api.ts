@@ -11,6 +11,10 @@ export interface ResponseError {
   message: string;
 }
 
+export interface TranslatedResponseError extends ResponseError {
+  translatedMessage: string;
+}
+
 export interface AuthUser {
   id: number;
   email: string;

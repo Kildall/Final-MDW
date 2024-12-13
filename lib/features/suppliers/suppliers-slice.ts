@@ -1,18 +1,21 @@
 import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { createLoadingThunk } from "@/lib/features/loading/loading-utils";
 import { RootState } from "@/lib/store";
+import { createSerializableError } from "@/lib/utils";
+import { APIException } from "@/services/api-service";
 import { SuppliersService } from "@/services/suppliers-service";
 import { Supplier } from "@/types/api/interfaces";
 import {
   CreateSupplierRequest,
   UpdateSupplierRequest,
 } from "@/types/api/requests/suppliers";
+import { SerializableError } from "@/types/redux_types";
 import { createSlice } from "@reduxjs/toolkit";
 
 export interface SuppliersState {
   suppliers: Supplier[];
   status: "idle" | "loading" | "succeeded" | "failed";
-  error: string | null;
+  error: SerializableError | null;
   currentOperation:
     | "fetch"
     | "fetch-shared"
@@ -32,13 +35,14 @@ export const fetchSuppliers = createLoadingThunk<Supplier[], void>(
 
       const response = await SuppliersService.fetchSuppliers(token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data.suppliers;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -49,13 +53,14 @@ export const fetchSharedSuppliers = createLoadingThunk<Supplier[], void>(
     try {
       const response = await SuppliersService.fetchSharedSuppliers();
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data.suppliers;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -72,13 +77,14 @@ export const createSupplier = createLoadingThunk<
 
       const response = await SuppliersService.createSupplier(request, token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -95,13 +101,14 @@ export const updateSupplier = createLoadingThunk<
 
       const response = await SuppliersService.updateSupplier(request, token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -113,12 +120,16 @@ export const deleteSupplier = createLoadingThunk<number, number>(
       const state = getState();
       const token = checkAuthAndGetToken(state);
 
-      await SuppliersService.deleteSupplier(id, token);
+      const response = await SuppliersService.deleteSupplier(id, token);
+      if (!response.status.success) {
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
+      }
+
       return id;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -154,7 +165,10 @@ const suppliersSlice = createSlice({
       })
       .addCase(fetchSharedSuppliers.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       })
       // Fetch Suppliers
@@ -170,7 +184,10 @@ const suppliersSlice = createSlice({
       })
       .addCase(fetchSuppliers.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       })
       // Create Supplier
@@ -186,7 +203,10 @@ const suppliersSlice = createSlice({
       })
       .addCase(createSupplier.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       })
       // Update Supplier
@@ -207,7 +227,10 @@ const suppliersSlice = createSlice({
       })
       .addCase(updateSupplier.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       })
       // Delete Supplier
@@ -225,7 +248,10 @@ const suppliersSlice = createSlice({
       })
       .addCase(deleteSupplier.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       });
   },
@@ -239,8 +265,9 @@ export const selectAllSuppliers = (state: RootState): Supplier[] =>
 export const selectSuppliersStatus = (
   state: RootState
 ): SuppliersState["status"] => state.suppliers.status;
-export const selectSuppliersError = (state: RootState): string | null =>
-  state.suppliers.error;
+export const selectSuppliersError = (
+  state: RootState
+): SerializableError | null => state.suppliers.error;
 export const selectCurrentOperation = (
   state: RootState
 ): SuppliersState["currentOperation"] => state.suppliers.currentOperation;

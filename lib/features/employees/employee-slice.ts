@@ -1,7 +1,10 @@
 import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { RootState } from "@/lib/store";
+import { createSerializableError } from "@/lib/utils";
+import { APIException } from "@/services/api-service";
 import { EmployeesService } from "@/services/employees-service";
 import { Employee } from "@/types/api/interfaces";
+import { SerializableError } from "@/types/redux_types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { createLoadingThunk } from "../loading/loading-utils";
 
@@ -9,7 +12,7 @@ export interface EmployeesState {
   employees: Employee[];
   employeesById: { [key: number]: Employee };
   status: "idle" | "loading" | "succeeded" | "failed";
-  error: string | null;
+  error: SerializableError | null;
   totalRevenue: number;
   currentOperation: "fetch" | "add" | "update" | "delete" | null;
 }
@@ -23,13 +26,14 @@ export const fetchEmployees = createLoadingThunk<Employee[], void>(
 
       const response = await EmployeesService.fetchEmployees(token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data.employees;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -43,13 +47,14 @@ export const fetchEmployeeById = createLoadingThunk<Employee, number>(
 
       const response = await EmployeesService.fetchEmployeeById(id, token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -89,7 +94,10 @@ const employeesSlice = createSlice({
       )
       .addCase(fetchEmployees.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       })
       .addCase(fetchEmployeeById.pending, (state) => {
@@ -109,7 +117,10 @@ const employeesSlice = createSlice({
       )
       .addCase(fetchEmployeeById.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       });
   },
@@ -123,8 +134,9 @@ export const selectAllEmployees = (state: RootState): Employee[] =>
 export const selectEmployeesStatus = (
   state: RootState
 ): EmployeesState["status"] => state.employees.status;
-export const selectEmployeesError = (state: RootState): string | null =>
-  state.employees.error;
+export const selectEmployeesError = (
+  state: RootState
+): SerializableError | null => state.employees.error;
 export const selectCurrentOperation = (
   state: RootState
 ): EmployeesState["currentOperation"] => state.employees.currentOperation;

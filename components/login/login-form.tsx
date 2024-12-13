@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { selectIsValidSession, setCredentials, setUser } from "@/lib/features/auth/auth-slice";
+import { addError } from "@/lib/features/error/error-slice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { logger } from "@/lib/logger";
 import { loginSchema, LoginSchema } from "@/lib/schemas/login-schema";
 import { cn } from "@/lib/utils";
+import { APIException } from "@/services/api-service";
 import { AuthService } from "@/services/auth-service";
 import { ErrorMessage, Field, Form, Formik, FormikHelpers } from "formik";
 import { redirect } from "next/navigation";
@@ -86,11 +87,17 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLDivE
       }
 
     } catch (error) {
-      logger.error("An error occurred while trying to login", { error });
-      toast({
-        title: "⚠️ Ocurrió un error desconocido",
-        description: "Por favor intente nuevamente",
-      })
+      if (error instanceof APIException) {
+        dispatch(addError({ messages: error.errors }));
+      } else {
+        dispatch(addError({
+          messages: [{
+            code: 5000,
+            message: "Error desconocido",
+            translatedMessage: "Error desconocido",
+          }]
+        }));
+      }
     } finally {
       setSubmitting(false);
     }

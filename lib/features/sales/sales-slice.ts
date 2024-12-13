@@ -1,11 +1,14 @@
 import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { RootState } from "@/lib/store";
+import { createSerializableError } from "@/lib/utils";
+import { APIException } from "@/services/api-service";
 import { SalesService } from "@/services/sales-service";
 import { Sale } from "@/types/api/interfaces";
 import {
   CreateSaleRequest,
   UpdateSaleRequest,
 } from "@/types/api/requests/sales";
+import { SerializableError } from "@/types/redux_types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { createLoadingThunk } from "../loading/loading-utils";
 
@@ -13,7 +16,7 @@ export interface SalesState {
   sales: Sale[];
   salesById: Record<Sale["id"], Sale>;
   status: "idle" | "loading" | "succeeded" | "failed";
-  error: string | null;
+  error: SerializableError | null;
   totalRevenue: number;
   currentOperation:
     | "fetch-shared"
@@ -33,13 +36,14 @@ export const fetchSales = createLoadingThunk<Sale[], void>(
 
       const response = await SalesService.fetchSales(token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data.sales;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -50,13 +54,14 @@ export const fetchSharedSales = createLoadingThunk<Sale[], void>(
     try {
       const response = await SalesService.fetchSharedSales();
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data.sales;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -70,13 +75,14 @@ export const createSale = createLoadingThunk<Sale, CreateSaleRequest>(
 
       const response = await SalesService.createSale(request, token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -90,13 +96,14 @@ export const updateSale = createLoadingThunk<Sale, UpdateSaleRequest>(
 
       const response = await SalesService.updateSale(request, token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -108,12 +115,16 @@ export const deleteSale = createLoadingThunk<number, number>(
       const state = getState();
       const token = checkAuthAndGetToken(state);
 
-      await SalesService.deleteSale(id, token);
+      const response = await SalesService.deleteSale(id, token);
+      if (!response.status.success) {
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
+      }
+
       return id;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -127,13 +138,14 @@ export const fetchSaleById = createLoadingThunk<Sale, number>(
 
       const response = await SalesService.fetchSalesById(id, token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -190,7 +202,10 @@ const salesSlice = createSlice({
       })
       .addCase(fetchSales.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       });
     builder
@@ -210,7 +225,10 @@ const salesSlice = createSlice({
       )
       .addCase(fetchSaleById.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       });
     // Fetch Shared Sales
@@ -227,7 +245,10 @@ const salesSlice = createSlice({
       })
       .addCase(fetchSharedSales.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       })
       // Create Sale
@@ -243,7 +264,10 @@ const salesSlice = createSlice({
       })
       .addCase(createSale.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       })
       // Update Sale
@@ -264,7 +288,10 @@ const salesSlice = createSlice({
       })
       .addCase(updateSale.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       })
       // Delete Sale
@@ -282,7 +309,10 @@ const salesSlice = createSlice({
       })
       .addCase(deleteSale.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       });
   },
@@ -294,7 +324,7 @@ export const { calculateTotalRevenue, clearError } = salesSlice.actions;
 export const selectAllSales = (state: RootState): Sale[] => state.sales.sales;
 export const selectSalesStatus = (state: RootState): SalesState["status"] =>
   state.sales.status;
-export const selectSalesError = (state: RootState): string | null =>
+export const selectSalesError = (state: RootState): SerializableError | null =>
   state.sales.error;
 export const selectTotalRevenue = (state: RootState): number =>
   state.sales.totalRevenue;

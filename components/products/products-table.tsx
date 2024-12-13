@@ -26,12 +26,14 @@ export function ProductsTable() {
     dispatch(fetchProducts());
   }, []);
 
-  function handleDelete(id: number) {
-    dispatch(deleteProduct(id));
-    toast({
-      title: "Producto eliminado",
-      description: "El producto ha sido eliminado correctamente.",
-    });
+  async function handleDelete(id: number) {
+    const result = await dispatch(deleteProduct(id));
+    if (result.meta.requestStatus === "fulfilled") {
+      toast({
+        title: "Producto eliminado",
+        description: "El producto ha sido eliminado correctamente.",
+      });
+    }
   }
 
   const products = useAppSelector((state) => state.products.products);

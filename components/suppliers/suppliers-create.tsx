@@ -22,13 +22,15 @@ export function SuppliersCreate() {
       const request: CreateSupplierRequest = {
         name: values.name
       };
-      await dispatch(createSupplier(request));
-      toast({
-        title: "Proveedor creado correctamente",
-        description: "El proveedor ha sido creado correctamente",
-        variant: "default",
-      });
-      router.push("/suppliers/list");
+      const result = await dispatch(createSupplier(request));
+      if (result.meta.requestStatus === "fulfilled") {
+        toast({
+          title: "Proveedor creado correctamente",
+          description: "El proveedor ha sido creado correctamente",
+          variant: "default",
+        });
+        router.push("/suppliers/list");
+      }
     } catch {
       toast({
         title: "Error al crear el proveedor",

@@ -5,6 +5,7 @@ import { InlineLoadingIndicator } from "@/components/ui/inline-loading-indicator
 import { useToast } from "@/hooks/use-toast";
 import { fetchProducts, selectProductById, updateProduct } from "@/lib/features/products/products-slice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { logger } from "@/lib/logger";
 import { UpdateProductSchema } from "@/lib/schemas/products/update-product-schema";
 import { FormikHelpers } from "formik";
 import { useRouter } from "next/navigation";
@@ -35,13 +36,16 @@ export function ProductRead({ id }: ProductReadProps) {
         ...values,
         productId: Number(id),
       };
-      await dispatch(updateProduct({ request }));
-      toast({
-        title: "Producto actualizado",
-        description: "El producto ha sido actualizado correctamente.",
-      });
-      router.push("/products/list");
-    } catch {
+      const result = await dispatch(updateProduct({ request }));
+      if (result.meta.requestStatus === "fulfilled") {
+        toast({
+          title: "Producto actualizado",
+          description: "El producto ha sido actualizado correctamente.",
+        });
+        router.push("/products/list");
+      }
+    } catch (error) {
+      logger.error("Error al actualizar el producto", error);
       toast({
         title: "Error al actualizar",
         description: "No se pudo actualizar el producto, inténtelo más tarde.",

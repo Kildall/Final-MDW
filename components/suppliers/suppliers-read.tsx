@@ -34,12 +34,14 @@ export function SuppliersRead({ id }: SuppliersReadProps) {
       const request = {
         ...values,
       };
-      await dispatch(updateSupplier({ request }));
-      toast({
-        title: "Proveedor actualizado",
-        description: "El proveedor ha sido actualizado correctamente.",
-      });
-      router.push("/suppliers/list");
+      const result = await dispatch(updateSupplier({ request }));
+      if (result.meta.requestStatus === "fulfilled") {
+        toast({
+          title: "Proveedor actualizado correctamente",
+          description: "El proveedor ha sido actualizado correctamente",
+        });
+        router.push("/suppliers/list");
+      }
     } catch {
       toast({
         title: "Error al actualizar",

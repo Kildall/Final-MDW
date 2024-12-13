@@ -1,7 +1,10 @@
 import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { RootState } from "@/lib/store";
+import { createSerializableError } from "@/lib/utils";
+import { APIException } from "@/services/api-service";
 import { DeliveriesService } from "@/services/deliveries-service";
 import { Address, Delivery, Employee, Sale } from "@/types/api/interfaces";
+import { SerializableError } from "@/types/redux_types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { createLoadingThunk } from "../loading/loading-utils";
 
@@ -21,7 +24,7 @@ type DeliveryFull = DeliveryWithoutRelations & {
 export interface DeliveriesState {
   deliveries: DeliveryFull[];
   status: "idle" | "loading" | "succeeded" | "failed";
-  error: string | null;
+  error: SerializableError | null;
   currentOperation:
     | "fetch-shared"
     | "fetch"
@@ -40,13 +43,14 @@ export const fetchDeliveries = createLoadingThunk<DeliveryFull[], void>(
 
       const response = await DeliveriesService.fetchDeliveries(token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data.deliveries as DeliveryFull[];
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -57,13 +61,14 @@ export const fetchSharedDeliveries = createLoadingThunk<DeliveryFull[], void>(
     try {
       const response = await DeliveriesService.fetchSharedDeliveries();
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data.deliveries as DeliveryFull[];
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -101,7 +106,10 @@ const deliveriesSlice = createSlice({
       )
       .addCase(fetchDeliveries.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       })
       .addCase(fetchSharedDeliveries.pending, (state) => {
@@ -119,7 +127,10 @@ const deliveriesSlice = createSlice({
       )
       .addCase(fetchSharedDeliveries.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       });
   },
@@ -133,8 +144,9 @@ export const selectAllDeliveries = (state: RootState): DeliveryFull[] =>
 export const selectDeliveriesStatus = (
   state: RootState
 ): DeliveriesState["status"] => state.deliveries.status;
-export const selectDeliveriesError = (state: RootState): string | null =>
-  state.deliveries.error;
+export const selectDeliveriesError = (
+  state: RootState
+): SerializableError | null => state.deliveries.error;
 export const selectCurrentOperation = (
   state: RootState
 ): DeliveriesState["currentOperation"] => state.deliveries.currentOperation;

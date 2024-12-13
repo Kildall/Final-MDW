@@ -27,12 +27,14 @@ export function SuppliersTable() {
     dispatch(fetchSuppliers());
   }, []);
 
-  function handleDelete(id: number) {
-    dispatch(deleteSupplier(id));
-    toast({
-      title: "Proveedor eliminado",
-      description: "El proveedor ha sido eliminado correctamente.",
-    });
+  async function handleDelete(id: number) {
+    const result = await dispatch(deleteSupplier(id));
+    if (result.meta.requestStatus === "fulfilled") {
+      toast({
+        title: "Proveedor eliminado",
+        description: "El proveedor ha sido eliminado correctamente.",
+      });
+    }
   }
 
   const suppliers = useAppSelector((state) => state.suppliers.suppliers);

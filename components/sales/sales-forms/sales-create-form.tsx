@@ -51,7 +51,7 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
           // Fetch customer data when customerId changes
           // eslint-disable-next-line react-hooks/rules-of-hooks
           useEffect(() => {
-            if (values.customerId !== 0) {
+            if (!isNaN(values.customerId) && values.customerId > 0) {
               dispatch(fetchCustomerById(values.customerId));
             }
           }, [values.customerId, dispatch]);

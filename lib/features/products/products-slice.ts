@@ -1,18 +1,21 @@
 import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { RootState } from "@/lib/store";
+import { createSerializableError } from "@/lib/utils";
+import { APIException } from "@/services/api-service";
 import { ProductsService } from "@/services/products-service";
 import { Product } from "@/types/api/interfaces";
 import {
   CreateProductRequest,
   UpdateProductRequest,
 } from "@/types/api/requests/products";
+import { SerializableError } from "@/types/redux_types";
 import { createSlice } from "@reduxjs/toolkit";
 import { createLoadingThunk } from "../loading/loading-utils";
 
 export interface ProductsState {
   products: Product[];
   status: "idle" | "loading" | "succeeded" | "failed";
-  error: string | null;
+  error: SerializableError | null;
   totalInventoryValue: number;
   currentOperation:
     | "fetch"
@@ -33,13 +36,14 @@ export const fetchProducts = createLoadingThunk<Product[], void>(
 
       const response = await ProductsService.fetchProducts(token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data.products;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -50,13 +54,14 @@ export const fetchSharedProducts = createLoadingThunk<Product[], void>(
     try {
       const response = await ProductsService.fetchSharedProducts();
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data.products;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -70,13 +75,14 @@ export const createProduct = createLoadingThunk<Product, CreateProductRequest>(
 
       const response = await ProductsService.createProduct(request, token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -93,13 +99,14 @@ export const updateProduct = createLoadingThunk<
 
       const response = await ProductsService.updateProduct(request, token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
+
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -111,12 +118,16 @@ export const deleteProduct = createLoadingThunk<number, number>(
       const state = getState();
       const token = checkAuthAndGetToken(state);
 
-      await ProductsService.deleteProduct(id, token);
+      const response = await ProductsService.deleteProduct(id, token);
+      if (!response.status.success) {
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
+      }
+
       return id;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -159,7 +170,10 @@ const productsSlice = createSlice({
       })
       .addCase(fetchSharedProducts.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       })
       // Fetch Products
@@ -175,7 +189,10 @@ const productsSlice = createSlice({
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       })
       // Create Product
@@ -191,7 +208,10 @@ const productsSlice = createSlice({
       })
       .addCase(createProduct.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       })
       // Update Product
@@ -212,7 +232,10 @@ const productsSlice = createSlice({
       })
       .addCase(updateProduct.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       })
       // Delete Product
@@ -230,7 +253,10 @@ const productsSlice = createSlice({
       })
       .addCase(deleteProduct.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       });
   },
@@ -245,8 +271,9 @@ export const selectAllProducts = (state: RootState): Product[] =>
 export const selectProductsStatus = (
   state: RootState
 ): ProductsState["status"] => state.products.status;
-export const selectProductsError = (state: RootState): string | null =>
-  state.products.error;
+export const selectProductsError = (
+  state: RootState
+): SerializableError | null => state.products.error;
 export const selectTotalInventoryValue = (state: RootState): number =>
   state.products.totalInventoryValue;
 export const selectCurrentOperation = (

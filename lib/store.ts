@@ -2,11 +2,11 @@ import authReducer from "@/lib/features/auth/auth-slice";
 import customersReducer from "@/lib/features/customers/customers-slice";
 import deliveriesReducer from "@/lib/features/deliveries/deliveries-slice";
 import employeesReducer from "@/lib/features/employees/employee-slice";
+import errorReducer from "@/lib/features/error/error-slice";
 import loadingReducer from "@/lib/features/loading/loading-slice";
 import productsReducer from "@/lib/features/products/products-slice";
 import salesReducer from "@/lib/features/sales/sales-slice";
 import suppliersReducer from "@/lib/features/suppliers/suppliers-slice";
-
 import { Action, configureStore, ThunkAction } from "@reduxjs/toolkit";
 import {
   FLUSH,
@@ -38,6 +38,7 @@ const makeStore = () =>
       loading: loadingReducer,
       auth: persistedAuthReducer,
       suppliers: suppliersReducer,
+      error: errorReducer,
     },
     devTools: process.env.NODE_ENV !== "production",
     middleware: (getDefaultMiddleware) =>

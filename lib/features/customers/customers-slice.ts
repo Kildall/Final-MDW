@@ -1,7 +1,10 @@
 import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { RootState } from "@/lib/store";
+import { createSerializableError } from "@/lib/utils";
+import { APIException } from "@/services/api-service";
 import { CustomersService } from "@/services/customers-service";
 import { Customer } from "@/types/api/interfaces";
+import { SerializableError } from "@/types/redux_types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { createLoadingThunk } from "../loading/loading-utils";
 
@@ -9,7 +12,7 @@ export interface CustomersState {
   customers: Customer[];
   customersById: { [key: number]: Customer };
   status: "idle" | "loading" | "succeeded" | "failed";
-  error: string | null;
+  error: SerializableError | null;
   totalRevenue: number;
   currentOperation:
     | "fetch-shared"
@@ -29,13 +32,13 @@ export const fetchCustomers = createLoadingThunk<Customer[], void>(
 
       const response = await CustomersService.fetchCustomers(token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
       return response.data.customers as Customer[];
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -49,13 +52,13 @@ export const fetchCustomerById = createLoadingThunk<Customer, number>(
 
       const response = await CustomersService.fetchCustomerById(id, token);
       if (!response.status.success) {
-        return rejectWithValue(response.status.errors.join(", "));
+        return rejectWithValue(
+          createSerializableError(new APIException(response.status.errors))
+        );
       }
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "An error occurred"
-      );
+      return rejectWithValue(createSerializableError(error));
     }
   }
 );
@@ -95,7 +98,10 @@ const customersSlice = createSlice({
       )
       .addCase(fetchCustomers.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       })
       .addCase(fetchCustomerById.pending, (state) => {
@@ -115,7 +121,10 @@ const customersSlice = createSlice({
       )
       .addCase(fetchCustomerById.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? "Unknown error occurred";
+        state.error = action.payload ?? {
+          type: "Error",
+          message: "Unknown error occurred",
+        };
         state.currentOperation = null;
       });
   },
@@ -123,14 +132,14 @@ const customersSlice = createSlice({
 
 export const { clearError } = customersSlice.actions;
 
-// Export selectors
 export const selectAllCustomers = (state: RootState): Customer[] =>
   state.customers.customers;
 export const selectCustomersStatus = (
   state: RootState
 ): CustomersState["status"] => state.customers.status;
-export const selectCustomersError = (state: RootState): string | null =>
-  state.customers.error;
+export const selectCustomersError = (
+  state: RootState
+): SerializableError | null => state.customers.error;
 export const selectCurrentOperation = (
   state: RootState
 ): CustomersState["currentOperation"] => state.customers.currentOperation;

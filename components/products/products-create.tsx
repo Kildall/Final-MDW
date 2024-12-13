@@ -3,6 +3,7 @@
 import { useToast } from "@/hooks/use-toast";
 import { createProduct } from "@/lib/features/products/products-slice";
 import { useAppDispatch } from "@/lib/hooks";
+import { logger } from "@/lib/logger";
 import { CreateProductSchema } from "@/lib/schemas/products/create-product-schema";
 import { CreateProductRequest } from "@/types/api/requests/products";
 import { FormikHelpers } from "formik";
@@ -26,15 +27,17 @@ export function ProductsCreate() {
         brand: values.brand,
         quantity: values.quantity,
       };
-      console.log(request);
-      await dispatch(createProduct(request));
-      toast({
-        title: "Producto creado correctamente",
-        description: "El producto ha sido creado correctamente",
-        variant: "default",
-      });
-      router.push("/products/list");
-    } catch {
+      const result = await dispatch(createProduct(request));
+      if (result.meta.requestStatus === "fulfilled") {
+        toast({
+          title: "Producto creado correctamente",
+          description: "El producto ha sido creado correctamente",
+          variant: "default",
+        });
+        router.push("/products/list");
+      }
+    } catch (error) {
+      logger.error("Error al crear el producto", error);
       toast({
         title: "Error al crear el producto",
         description: "Hubo un error al crear el producto",
