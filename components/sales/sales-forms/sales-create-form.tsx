@@ -382,7 +382,7 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                   type="button"
                   variant="destructive"
                   className="w-72"
-                  onClick={() => router.back()}
+                  onClick={() => router.push("/sales/list")}
                 >
                   Volver
                 </Button>

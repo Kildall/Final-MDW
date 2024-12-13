@@ -387,7 +387,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
             <div className="flex flex-row justify-between gap-4">
               <Button
                 className="w-72 bg-destructive"
-                onClick={() => router.back()}
+                onClick={() => router.push("/sales/list")}
                 type="button"
               >
                 Volver
