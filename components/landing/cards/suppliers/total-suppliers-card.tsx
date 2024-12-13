@@ -2,38 +2,32 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
-  CardTitle,
+  CardTitle
 } from "@/components/ui/card";
 import { ArrowUpIcon } from "lucide-react";
 
 interface TotalSuppliersCardProps {
-  totalPurchases: number;
-  enabledSuppliers: number;
+  totalSuppliers: number;
 }
 
 function TotalSuppliersCard({
-  totalPurchases,
-  enabledSuppliers,
+  totalSuppliers,
 }: TotalSuppliersCardProps) {
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="flex flex-1">
-        <CardTitle>Proveedores</CardTitle>
+        <CardTitle>Cantidad de proveedores</CardTitle>
         <CardDescription>
-          Información sobre proveedores habilitados
+          Información sobre proveedores
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-1 justify-center py-4">
         <span className="flex flex-row items-center gap-2">
           <ArrowUpIcon className="w-4 h-4" />
-          <span className="text-2xl font-bold">{enabledSuppliers}</span>
+          <span className="text-2xl font-bold">{totalSuppliers}</span>
         </span>
       </CardContent>
-      <CardFooter className="flex justify-center items-center text-background text-sm">
-        Total de compras: {totalPurchases}
-      </CardFooter>
     </Card>
   );
 }

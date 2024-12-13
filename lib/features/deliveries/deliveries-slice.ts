@@ -22,7 +22,6 @@ export interface DeliveriesState {
   deliveries: DeliveryFull[];
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
-  totalRevenue: number;
   currentOperation:
     | "fetch-shared"
     | "fetch"
@@ -73,7 +72,6 @@ const initialState: DeliveriesState = {
   deliveries: [],
   status: "idle",
   error: null,
-  totalRevenue: 0,
   currentOperation: null,
 };
 

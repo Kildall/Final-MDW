@@ -8,19 +8,31 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchProducts } from "@/lib/features/products/products-slice";
+import { useToast } from "@/hooks/use-toast";
+import { deleteProduct, fetchProducts } from "@/lib/features/products/products-slice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
 import { Button } from "../ui/button";
+import { DeleteProductDialog } from "./products-dialogs/delete-product-dialog";
 
 
 export function ProductsTable() {
   const dispatch = useAppDispatch();
+  const { toast } = useToast();
+
   useEffect(() => {
     dispatch(fetchProducts());
   }, []);
+
+  function handleDelete(id: number) {
+    dispatch(deleteProduct(id));
+    toast({
+      title: "Producto eliminado",
+      description: "El producto ha sido eliminado correctamente.",
+    });
+  }
 
   const products = useAppSelector((state) => state.products.products);
   return (
@@ -33,7 +45,6 @@ export function ProductsTable() {
           <TableHead>Unidad de medida</TableHead>
           <TableHead>Marca</TableHead>
           <TableHead>Precio</TableHead>
-          <TableHead className="text-right">Habilitado</TableHead>
           <TableHead className="text-center">Acciones</TableHead>
         </TableRow>
       </TableHeader>
@@ -42,18 +53,16 @@ export function ProductsTable() {
           <TableRow key={product.id}>
             <TableCell className="font-medium">{product.name}</TableCell>
             <TableCell>{product.quantity}</TableCell>
-            <TableCell>{product.measure}</TableCell>
+            <TableCell>{product.measure} ml</TableCell>
             <TableCell>{product.brand}</TableCell>
             <TableCell>{`$${product.price.toFixed(2)}`}</TableCell>
-            <TableCell className="text-right">
-              {product.enabled ? "Sí" : "No"}
-            </TableCell>
-            <TableCell className="flex justify-center">
+            <TableCell className="flex justify-center gap-2">
               <Link href={`/products/${product.id}`}>
                 <Button variant="outline" size="icon">
                   <ArrowRightIcon className="w-4 h-4" />
                 </Button>
               </Link>
+              <DeleteProductDialog onDelete={() => handleDelete(product.id)} />
             </TableCell>
           </TableRow>
         ))}

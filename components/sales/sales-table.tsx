@@ -15,14 +15,17 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { DELIVERY_STATUS } from "@/helpers/delivery-status";
-import { fetchSales } from "@/lib/features/sales/sales-slice";
+import { useToast } from "@/hooks/use-toast";
+import { deleteSale, fetchSales } from "@/lib/features/sales/sales-slice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { ArrowRightIcon, Package, Truck } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
+import { DeleteSaleDialog } from "./sales-dialogs/delete-sale-dialog";
 
 export function SalesTable() {
   const dispatch = useAppDispatch();
+  const { toast } = useToast();
   const sales = useAppSelector((state) => state.sales.sales);
 
   useEffect(() => {
@@ -36,6 +39,14 @@ export function SalesTable() {
     }).format(amount);
   };
 
+  function handleDelete(id: number) {
+    dispatch(deleteSale(id));
+    toast({
+      title: "Venta eliminada",
+      description: "La venta ha sido eliminada correctamente.",
+    });
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -46,7 +57,7 @@ export function SalesTable() {
           <TableHead>Entregas</TableHead>
           <TableHead>Total</TableHead>
           <TableHead>Cliente</TableHead>
-          <TableHead>Acciones</TableHead>
+          <TableHead className="text-center">Acciones</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -134,12 +145,13 @@ export function SalesTable() {
               )}
             </TableCell>
             <TableCell>{sale.customer?.name}</TableCell>
-            <TableCell className="flex justify-center">
+            <TableCell className="flex justify-center gap-2">
               <Link href={`/sales/${sale.id}`}>
                 <Button variant="outline" size="icon">
                   <ArrowRightIcon className="w-4 h-4" />
                 </Button>
               </Link>
+              <DeleteSaleDialog onDelete={() => handleDelete(sale.id)} />
             </TableCell>
           </TableRow>
         ))}

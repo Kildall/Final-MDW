@@ -1,18 +1,128 @@
 import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
-import { RootState } from "@/lib/store"; // Asegúrate de que la ruta sea correcta
-import { SuppliersService } from "@/services/suppliers-service"; // Asegúrate de que tienes un servicio para manejar la lógica de proveedores
-import { Supplier } from "@/types/api/interfaces"; // Define el tipo de Supplier según tu estructura de datos
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createLoadingThunk } from "@/lib/features/loading/loading-utils";
+import { RootState } from "@/lib/store";
+import { SuppliersService } from "@/services/suppliers-service";
+import { Supplier } from "@/types/api/interfaces";
+import {
+  CreateSupplierRequest,
+  UpdateSupplierRequest,
+} from "@/types/api/requests/suppliers";
+import { createSlice } from "@reduxjs/toolkit";
 
-// Definir los tipos
-interface SuppliersState {
+export interface SuppliersState {
   suppliers: Supplier[];
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
-  currentOperation: "fetch" | "add" | "update" | "delete" | null;
+  currentOperation:
+    | "fetch"
+    | "fetch-shared"
+    | "add"
+    | "update"
+    | "delete"
+    | null;
 }
 
-// Estado inicial
+// Async Thunks
+export const fetchSuppliers = createLoadingThunk<Supplier[], void>(
+  "suppliers/fetchSuppliers",
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
+
+      const response = await SuppliersService.fetchSuppliers(token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data.suppliers;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    }
+  }
+);
+
+export const fetchSharedSuppliers = createLoadingThunk<Supplier[], void>(
+  "suppliers/fetchSharedSuppliers",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await SuppliersService.fetchSharedSuppliers();
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data.suppliers;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    }
+  }
+);
+
+export const createSupplier = createLoadingThunk<
+  Supplier,
+  CreateSupplierRequest
+>(
+  "suppliers/createSupplier",
+  async (request, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
+
+      const response = await SuppliersService.createSupplier(request, token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    }
+  }
+);
+
+export const updateSupplier = createLoadingThunk<
+  Supplier,
+  { request: UpdateSupplierRequest }
+>(
+  "suppliers/updateSupplier",
+  async ({ request }, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
+
+      const response = await SuppliersService.updateSupplier(request, token);
+      if (!response.status.success) {
+        return rejectWithValue(response.status.errors.join(", "));
+      }
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    }
+  }
+);
+
+export const deleteSupplier = createLoadingThunk<number, number>(
+  "suppliers/deleteSupplier",
+  async (id, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const token = checkAuthAndGetToken(state);
+
+      await SuppliersService.deleteSupplier(id, token);
+      return id;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    }
+  }
+);
+
 const initialState: SuppliersState = {
   suppliers: [],
   status: "idle",
@@ -20,35 +130,10 @@ const initialState: SuppliersState = {
   currentOperation: null,
 };
 
-// Acción asincrónica para obtener los proveedores
-export const fetchSuppliers = createAsyncThunk<
-  Supplier[],
-  void,
-  { rejectValue: string; state: RootState }
->("suppliers/fetchSuppliers", async (_, { rejectWithValue, getState }) => {
-  try {
-    const state = getState();
-    const token = checkAuthAndGetToken(state);
-    const response = await SuppliersService.fetchSuppliers(token);
-    if (!response.status.success) {
-      return rejectWithValue(response.status.errors.join(", "));
-    }
-    return response.data.suppliers;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "An error occurred"
-    );
-  }
-});
-
-// Crear el slice
 const suppliersSlice = createSlice({
   name: "suppliers",
   initialState,
   reducers: {
-    setSuppliers: (state, action: PayloadAction<Supplier[]>) => {
-      (state.suppliers as Supplier[]) = action.payload;
-    },
     clearError: (state) => {
       state.error = null;
       state.status = "idle";
@@ -56,6 +141,23 @@ const suppliersSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Fetch Shared Suppliers
+      .addCase(fetchSharedSuppliers.pending, (state) => {
+        state.status = "loading";
+        state.currentOperation = "fetch-shared";
+      })
+      .addCase(fetchSharedSuppliers.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        (state.suppliers as Supplier[]) = action.payload;
+        state.error = null;
+        state.currentOperation = null;
+      })
+      .addCase(fetchSharedSuppliers.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload ?? "Unknown error occurred";
+        state.currentOperation = null;
+      })
+      // Fetch Suppliers
       .addCase(fetchSuppliers.pending, (state) => {
         state.status = "loading";
         state.currentOperation = "fetch";
@@ -70,13 +172,68 @@ const suppliersSlice = createSlice({
         state.status = "failed";
         state.error = action.payload ?? "Unknown error occurred";
         state.currentOperation = null;
+      })
+      // Create Supplier
+      .addCase(createSupplier.pending, (state) => {
+        state.status = "loading";
+        state.currentOperation = "add";
+      })
+      .addCase(createSupplier.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        (state.suppliers as Supplier[]).push(action.payload);
+        state.error = null;
+        state.currentOperation = null;
+      })
+      .addCase(createSupplier.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload ?? "Unknown error occurred";
+        state.currentOperation = null;
+      })
+      // Update Supplier
+      .addCase(updateSupplier.pending, (state) => {
+        state.status = "loading";
+        state.currentOperation = "update";
+      })
+      .addCase(updateSupplier.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        const index = state.suppliers.findIndex(
+          (supplier) => supplier.id === action.payload.id
+        );
+        if (index !== -1) {
+          (state.suppliers as Supplier[])[index] = action.payload;
+        }
+        state.error = null;
+        state.currentOperation = null;
+      })
+      .addCase(updateSupplier.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload ?? "Unknown error occurred";
+        state.currentOperation = null;
+      })
+      // Delete Supplier
+      .addCase(deleteSupplier.pending, (state) => {
+        state.status = "loading";
+        state.currentOperation = "delete";
+      })
+      .addCase(deleteSupplier.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        (state.suppliers as Supplier[]) = (
+          state.suppliers as Supplier[]
+        ).filter((supplier) => supplier.id !== action.payload);
+        state.error = null;
+        state.currentOperation = null;
+      })
+      .addCase(deleteSupplier.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload ?? "Unknown error occurred";
+        state.currentOperation = null;
       });
   },
 });
 
-export const { setSuppliers, clearError } = suppliersSlice.actions;
+export const { clearError } = suppliersSlice.actions;
 
-// Selectores
+// Export selectors
 export const selectAllSuppliers = (state: RootState): Supplier[] =>
   state.suppliers.suppliers;
 export const selectSuppliersStatus = (
@@ -87,5 +244,10 @@ export const selectSuppliersError = (state: RootState): string | null =>
 export const selectCurrentOperation = (
   state: RootState
 ): SuppliersState["currentOperation"] => state.suppliers.currentOperation;
+export const selectSupplierById = (
+  state: RootState,
+  supplierId: number
+): Supplier | undefined =>
+  state.suppliers.suppliers.find((supplier) => supplier.id === supplierId);
 
 export default suppliersSlice.reducer;

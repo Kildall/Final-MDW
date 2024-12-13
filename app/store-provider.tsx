@@ -2,6 +2,7 @@
 import { fetchSharedDeliveries } from '@/lib/features/deliveries/deliveries-slice'
 import { fetchSharedProducts } from '@/lib/features/products/products-slice'
 import { fetchSharedSales } from '@/lib/features/sales/sales-slice'
+import { fetchSharedSuppliers } from '@/lib/features/suppliers/suppliers-slice'
 import { AppStore, persistor, store } from '@/lib/store'
 import { useRef } from 'react'
 import { Provider } from 'react-redux'
@@ -21,6 +22,7 @@ export default function StoreProvider({
     storeRef.current.dispatch(fetchSharedSales())
     storeRef.current.dispatch(fetchSharedDeliveries())
     storeRef.current.dispatch(fetchSharedProducts())
+    storeRef.current.dispatch(fetchSharedSuppliers())
   }
 
   return (

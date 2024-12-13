@@ -1,7 +1,9 @@
 import { ApiService } from "@/services/api-service";
 import { ApiResponse } from "@/types/api/api";
-import { Supplier } from "@/types/api/interfaces";
-import { UpdateSupplierRequest } from "@/types/api/requests/suppliers";
+import {
+  CreateSupplierRequest,
+  UpdateSupplierRequest,
+} from "@/types/api/requests/suppliers";
 import {
   CreateSupplierResponse,
   DeleteSupplierResponse,
@@ -30,7 +32,7 @@ export class SuppliersService extends ApiService {
   }
 
   static async createSupplier(
-    supplier: Omit<Supplier, "id" | "_count">,
+    supplier: CreateSupplierRequest,
     token: string
   ): Promise<ApiResponse<CreateSupplierResponse>> {
     return this.fetch<ApiResponse<CreateSupplierResponse>>(
@@ -58,10 +60,15 @@ export class SuppliersService extends ApiService {
   }
 
   static async deleteSupplier(
-    id: number
+    id: number,
+    token: string
   ): Promise<ApiResponse<DeleteSupplierResponse>> {
-    return this.fetch<ApiResponse<DeleteSupplierResponse>>(`/suppliers/${id}`, {
-      method: "DELETE",
-    });
+    return this.fetch<ApiResponse<DeleteSupplierResponse>>(
+      `/suppliers/${id}`,
+      {
+        method: "DELETE",
+      },
+      token
+    );
   }
 }

@@ -2,7 +2,10 @@ import { checkAuthAndGetToken } from "@/helpers/store-check-auth-get-token";
 import { RootState } from "@/lib/store";
 import { ProductsService } from "@/services/products-service";
 import { Product } from "@/types/api/interfaces";
-import { UpdateProductRequest } from "@/types/api/requests/products";
+import {
+  CreateProductRequest,
+  UpdateProductRequest,
+} from "@/types/api/requests/products";
 import { createSlice } from "@reduxjs/toolkit";
 import { createLoadingThunk } from "../loading/loading-utils";
 
@@ -58,14 +61,14 @@ export const fetchSharedProducts = createLoadingThunk<Product[], void>(
   }
 );
 
-export const createProduct = createLoadingThunk<Product, Omit<Product, "id">>(
+export const createProduct = createLoadingThunk<Product, CreateProductRequest>(
   "products/createProduct",
-  async (newProduct, { rejectWithValue, getState }) => {
+  async (request, { rejectWithValue, getState }) => {
     try {
       const state = getState();
       const token = checkAuthAndGetToken(state);
 
-      const response = await ProductsService.createProduct(newProduct, token);
+      const response = await ProductsService.createProduct(request, token);
       if (!response.status.success) {
         return rejectWithValue(response.status.errors.join(", "));
       }

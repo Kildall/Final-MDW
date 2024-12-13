@@ -8,6 +8,7 @@ import { useAppSelector } from "@/lib/hooks"
 import { LogIn, LogOut } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePathname } from "next/navigation"
 
 interface NavItem {
   title: string
@@ -20,11 +21,6 @@ const salesNavMenuItems: NavItem[] = [
     title: "Dashboard de Ventas",
     href: "/sales",
     description: "Visualiza y gestiona todas tus ventas en un solo lugar",
-  },
-  {
-    title: "Crear Venta",
-    href: "/sales/create",
-    description: "Crea una nueva venta",
   },
   {
     title: "Listado de Ventas",
@@ -48,6 +44,11 @@ const deliveryNavMenuItems: NavItem[] = [
 
 const productsNavMenuItems: NavItem[] = [
   {
+    title: "Dashboard de Productos",
+    href: "/products",
+    description: "Visualiza y gestiona todos tus productos en un solo lugar",
+  },
+  {
     title: "Listado de Productos",
     href: "/products/list",
     description: "Ve todos tus productos",
@@ -61,11 +62,6 @@ const suppliersNavMenuItems: NavItem[] = [
     description: "Visualiza y gestiona todos tus proveedores en un solo lugar",
   },
   {
-    title: "Crear Proveedor",
-    href: "/suppliers/create",
-    description: "Crea un nuevo proveedor",
-  },
-  {
     title: "Listado de Proveedores",
     href: "/suppliers/list",
     description: "Ve todos tus proveedores",
@@ -75,6 +71,8 @@ const suppliersNavMenuItems: NavItem[] = [
 function Navbar() {
   const isLoggedIn = useAppSelector(selectIsValidSession);
   const user = useAppSelector(selectUser);
+  const pathname = usePathname();
+  const isLoginPage = pathname.endsWith("/login");
   return (
     <div className="w-full h-20 bg-primary flex items-center justify-between px-4">
       <div className="flex items-center w-full max-w-7xl m-auto justify-between">
@@ -146,21 +144,23 @@ function Navbar() {
         )}
 
         {/* Login/Logout */}
-        <div className="flex-shrink-0 flex flex-row items-center gap-2">
-          {user && <Label className="text-white md:block hidden"> Bienvenido, {user.name}</Label>}
-          <Link href={isLoggedIn ? "/logout" : "/login"}>
-            <Button variant="outline">
-              {isLoggedIn ? <span className="flex items-center gap-2">
-                Logout
-                <LogOut className="w-4 h-4" />
-              </span> :
-                <span className="flex items-center gap-2">
-                  Login
-                  <LogIn className="w-4 h-4" />
-                </span>}
-            </Button>
-          </Link>
-        </div>
+        {!isLoginPage && (
+          <div className="flex-shrink-0 flex flex-row items-center gap-2">
+            {user && <Label className="text-white md:block hidden"> Bienvenido, {user.name}</Label>}
+            <Link href={isLoggedIn ? "/logout" : "/login"}>
+              <Button variant="outline">
+                {isLoggedIn ? <span className="flex items-center gap-2">
+                  Logout
+                  <LogOut className="w-4 h-4" />
+                </span> :
+                  <span className="flex items-center gap-2">
+                    Login
+                    <LogIn className="w-4 h-4" />
+                  </span>}
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
 
 
