@@ -147,7 +147,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                           <Field name={`products.${index}.productId`}>
                             {({ field }: FieldProps) => (
                               <Select
-                                value={field.value?.toString()}
+                                value={field.value.toString()}
                                 onValueChange={(value) => {
                                   const selectedProduct = products.find(p => p.id.toString() === value);
                                   if (selectedProduct) {
@@ -167,6 +167,12 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                                   <SelectValue placeholder="Seleccionar producto" />
                                 </SelectTrigger>
                                 <SelectContent>
+                                  {
+                                    !products.map(p => p.id).includes(field.value) &&
+                                    <SelectItem key={field.value} value={field.value.toString()}>
+                                      Producto ha sido eliminado
+                                    </SelectItem>
+                                  }
                                   {products.map((p) => (
                                     <SelectItem key={p.id} value={p.id.toString()}>
                                       {p.name}
@@ -382,6 +388,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
               <Button
                 className="w-72 bg-destructive"
                 onClick={() => router.back()}
+                type="button"
               >
                 Volver
               </Button>
