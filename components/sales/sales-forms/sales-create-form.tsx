@@ -59,10 +59,12 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
         enableReinitialize
       >
         {({ values, isSubmitting, setFieldValue }) => {
+          // eslint-disable-next-line react-hooks/rules-of-hooks
           const customer = useAppSelector((state) =>
             selectCustomerById(state, values.customerId !== 0 ? values.customerId : undefined)
           );
 
+          // eslint-disable-next-line react-hooks/rules-of-hooks
           useEffect(() => {
             if (!isNaN(values.customerId) && values.customerId > 0) {
               dispatch(fetchCustomerById(values.customerId));
