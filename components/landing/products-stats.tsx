@@ -58,3 +58,4 @@ function ProductsStats() {
 }
 
 export { ProductsStats };
+

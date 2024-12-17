@@ -13,7 +13,6 @@ import { Info, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 
-
 interface UpdateSaleFormProps {
   sale: Sale;
   customer: Customer;
@@ -62,9 +61,9 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
         enableReinitialize
       >
         {({ values, isSubmitting, setFieldValue }) => (
-          <Form className="space-y-6">
+          <Form className="space-y-6 max-w-6xl mx-auto p-4">
             {/* Basic Information */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="id">ID</Label>
                 <Field
@@ -114,10 +113,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
 
               <div>
                 <Label htmlFor="employeeId">Empleado</Label>
-                <Field
-                  name="employeeId"
-                  id="employeeId"
-                >
+                <Field name="employeeId">
                   {({ field }: FieldProps) => (
                     <Select
                       value={field.value.toString()}
@@ -141,17 +137,20 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <Label>Productos</Label>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Seleccione productos del catálogo y especifique la cantidad
-                  </TooltipContent>
-                </Tooltip>
+            {/* Products Section */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Label>Productos</Label>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Seleccione productos del catálogo y especifique la cantidad
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <div className="text-lg font-semibold">
                   Total: {formatPrice(calculateTotal(values.products))}
                 </div>
@@ -159,9 +158,9 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
 
               <FieldArray name="products">
                 {({ push, remove }) => (
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     {values.products.map((product, index) => (
-                      <div key={index} className="flex gap-4 items-end">
+                      <div key={index} className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg">
                         <div className="flex-1">
                           <Label htmlFor={`products.${index}.productId`}>Producto</Label>
                           <Field name={`products.${index}.productId`}>
@@ -178,7 +177,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                                   }
                                 }}
                               >
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full">
                                   <SelectValue placeholder="Seleccionar producto" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -200,12 +199,9 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                               </Select>
                             )}
                           </Field>
-                          <ErrorMessage
-                            name={`products.${index}.productId`}
-                            component={Label}
-                            className="text-red-500"
-                          />
+                          <ErrorMessage name={`products.${index}.productId`} component={Label} className="text-red-500" />
                         </div>
+
                         <div className="flex-1">
                           <Label htmlFor={`products.${index}.quantity`}>Cantidad</Label>
                           <Field name={`products.${index}.quantity`}>
@@ -215,16 +211,18 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
 
                               return (
                                 <div className="flex items-center gap-2">
-                                  <Slider
-                                    value={[field.value]}
-                                    onValueChange={(value) => {
-                                      setFieldValue(`products.${index}.quantity`, value[0]);
-                                    }}
-                                    disabled={!selectedProduct}
-                                    min={1}
-                                    max={maxQuantity}
-                                    step={1}
-                                  />
+                                  <div className="flex-1">
+                                    <Slider
+                                      value={[field.value]}
+                                      onValueChange={(value) => {
+                                        setFieldValue(`products.${index}.quantity`, value[0]);
+                                      }}
+                                      disabled={!selectedProduct}
+                                      min={1}
+                                      max={maxQuantity}
+                                      step={1}
+                                    />
+                                  </div>
                                   <Input
                                     type="number"
                                     min={1}
@@ -241,12 +239,9 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                               );
                             }}
                           </Field>
-                          <ErrorMessage
-                            name={`products.${index}.quantity`}
-                            component={Label}
-                            className="text-red-500"
-                          />
+                          <ErrorMessage name={`products.${index}.quantity`} component={Label} className="text-red-500" />
                         </div>
+
                         <div className="flex-1">
                           <Label>Subtotal</Label>
                           <Input
@@ -254,20 +249,24 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                             value={formatPrice(calculateLineTotal(product.productId, product.quantity))}
                           />
                         </div>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              onClick={() => remove(index)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            Eliminar producto
-                          </TooltipContent>
-                        </Tooltip>
+
+                        <div className="flex items-end">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                onClick={() => remove(index)}
+                                className="w-full sm:w-auto"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Eliminar producto
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
                       </div>
                     ))}
                     <Button
@@ -280,6 +279,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                         )?.id || 0,
                         quantity: 1
                       })}
+                      className="w-full sm:w-auto"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Agregar Producto
@@ -291,7 +291,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
             </div>
 
             {/* Deliveries Section */}
-            <div className="space-y-2">
+            <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Label>Entregas</Label>
                 <Tooltip>
@@ -306,15 +306,12 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
 
               <FieldArray name="deliveries">
                 {({ push, remove }) => (
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     {values.deliveries.map((delivery, index) => (
                       <div key={index} className="border p-4 rounded-lg space-y-4">
-                        <div className="grid grid-cols-3 gap-4">
-                          {/* Employee Selection */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <Label htmlFor={`deliveries.${index}.employeeId`}>
-                              Empleado
-                            </Label>
+                            <Label htmlFor={`deliveries.${index}.employeeId`}>Empleado</Label>
                             <Field name={`deliveries.${index}.employeeId`}>
                               {({ field }: FieldProps) => (
                                 <Select
@@ -328,7 +325,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                                     });
                                   }}
                                 >
-                                  <SelectTrigger>
+                                  <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Seleccionar empleado" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -341,18 +338,11 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                                 </Select>
                               )}
                             </Field>
-                            <ErrorMessage
-                              name={`deliveries.${index}.employeeId`}
-                              component={Label}
-                              className="text-red-500"
-                            />
+                            <ErrorMessage name={`deliveries.${index}.employeeId`} component={Label} className="text-red-500" />
                           </div>
 
-                          {/* Address Selection */}
                           <div>
-                            <Label htmlFor={`deliveries.${index}.addressId`}>
-                              Dirección
-                            </Label>
+                            <Label htmlFor={`deliveries.${index}.addressId`}>Dirección</Label>
                             <Field name={`deliveries.${index}.addressId`}>
                               {({ field }: FieldProps) => (
                                 <Select
@@ -366,7 +356,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                                     });
                                   }}
                                 >
-                                  <SelectTrigger>
+                                  <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Seleccionar dirección" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -379,37 +369,27 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                                 </Select>
                               )}
                             </Field>
-                            <ErrorMessage
-                              name={`deliveries.${index}.addressId`}
-                              component={Label}
-                              className="text-red-500"
-                            />
+                            <ErrorMessage name={`deliveries.${index}.addressId`} component={Label} className="text-red-500" />
                           </div>
 
-                          {/* Start Date */}
                           <div>
-                            <Label htmlFor={`deliveries.${index}.startDate`}>
-                              Fecha de Inicio
-                            </Label>
-                            <Field
-                              name={`deliveries.${index}.startDate`}
-                            >
+                            <Label htmlFor={`deliveries.${index}.startDate`}>Fecha de Inicio</Label>
+                            <Field name={`deliveries.${index}.startDate`}>
                               {({ field }: FieldProps) => (
                                 <DateTimePicker
                                   value={field.value ? new Date(field.value) : undefined}
                                   onChange={(date) => {
                                     field.onChange({
-                                      target: { name: `deliveries.${index}.startDate`, value: date ? date.toISOString() : "" }
+                                      target: {
+                                        name: `deliveries.${index}.startDate`,
+                                        value: date ? date.toISOString() : ""
+                                      }
                                     });
                                   }}
                                 />
                               )}
                             </Field>
-                            <ErrorMessage
-                              name={`deliveries.${index}.startDate`}
-                              component={Label}
-                              className="text-red-500"
-                            />
+                            <ErrorMessage name={`deliveries.${index}.startDate`} component={Label} className="text-red-500" />
                           </div>
                         </div>
 
@@ -419,6 +399,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                               type="button"
                               variant="destructive"
                               onClick={() => remove(index)}
+                              className="w-full sm:w-auto"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Eliminar Entrega
@@ -439,6 +420,7 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
                         startDate: new Date(new Date().getTime() + 30 * 60000).toISOString(),
                         status: 'CREATED' as DeliveryStatusEnum
                       })}
+                      className="w-full sm:w-auto"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Agregar Entrega
@@ -448,16 +430,17 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
               </FieldArray>
             </div>
 
-            <div className="flex flex-row justify-between gap-4">
+            <div className="flex flex-col sm:flex-row justify-between gap-4">
               <Button
-                className="w-72 bg-destructive"
-                onClick={() => router.push("/sales/list")}
                 type="button"
+                variant="destructive"
+                className="w-full sm:w-72"
+                onClick={() => router.push("/sales/list")}
               >
                 Volver
               </Button>
               <Button
-                className="w-72 bg-teal-500"
+                className="w-full sm:w-72 bg-teal-500"
                 type="submit"
                 disabled={isSubmitting}
               >
@@ -465,9 +448,10 @@ export function UpdateSaleForm({ sale, customer, products, employees, onSubmit }
               </Button>
             </div>
           </Form>
-        )
-        }
-      </Formik >
-    </TooltipProvider >
+        )}
+      </Formik>
+    </TooltipProvider>
   );
 }
+
+export default UpdateSaleForm;

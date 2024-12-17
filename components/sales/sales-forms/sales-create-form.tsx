@@ -39,7 +39,6 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
     return product ? product.price * quantity : 0;
   };
 
-  // Function to calculate total price
   const calculateTotal = (productList: Array<{ productId: number, quantity: number }>) => {
     return productList.reduce((sum, item) => sum + calculateLineTotal(item.productId, item.quantity), 0);
   };
@@ -60,14 +59,10 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
         enableReinitialize
       >
         {({ values, isSubmitting, setFieldValue }) => {
-          // Get customer from Redux store using the current customerId from form values
-          // eslint-disable-next-line react-hooks/rules-of-hooks
           const customer = useAppSelector((state) =>
             selectCustomerById(state, values.customerId !== 0 ? values.customerId : undefined)
           );
 
-          // Fetch customer data when customerId changes
-          // eslint-disable-next-line react-hooks/rules-of-hooks
           useEffect(() => {
             if (!isNaN(values.customerId) && values.customerId > 0) {
               dispatch(fetchCustomerById(values.customerId));
@@ -75,10 +70,10 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
           }, [values.customerId, dispatch]);
 
           return (
-            <Form className="space-y-6">
+            <Form className="space-y-6 max-w-6xl mx-auto p-4">
               {/* Basic Information */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="w-full">
                   <Label htmlFor="customerId">Cliente</Label>
                   <Field name="customerId">
                     {({ field }: FieldProps) => (
@@ -111,7 +106,7 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                   <ErrorMessage name="customerId" component={Label} className="text-red-500" />
                 </div>
 
-                <div>
+                <div className="w-full">
                   <Label htmlFor="employeeId">Empleado</Label>
                   <Field name="employeeId">
                     {({ field }: FieldProps) => (
@@ -121,7 +116,7 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                           target: { name: 'employeeId', value: parseInt(value) }
                         })}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Seleccionar empleado" />
                         </SelectTrigger>
                         <SelectContent>
@@ -137,7 +132,7 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                   <ErrorMessage name="employeeId" component={Label} className="text-red-500" />
                 </div>
 
-                <div>
+                <div className="w-full">
                   <Label htmlFor="startDate">Fecha de Inicio</Label>
                   <Field name="startDate">
                     {({ field }: FieldProps) => (
@@ -156,8 +151,8 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
               </div>
 
               {/* Products Section */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <Label>Productos</Label>
                     <Tooltip>
@@ -176,9 +171,9 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
 
                 <FieldArray name="products">
                   {({ push, remove }) => (
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       {Array.isArray(values.products) && values.products.map((product, index) => (
-                        <div key={index} className="flex gap-4 items-end">
+                        <div key={index} className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg">
                           <div className="flex-1">
                             <Label htmlFor={`products.${index}.productId`}>Producto</Label>
                             <Field name={`products.${index}.productId`}>
@@ -195,7 +190,7 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                                     });
                                   }}
                                 >
-                                  <SelectTrigger>
+                                  <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Seleccionar producto" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -208,12 +203,9 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                                 </Select>
                               )}
                             </Field>
-                            <ErrorMessage
-                              name={`products.${index}.productId`}
-                              component={Label}
-                              className="text-red-500"
-                            />
+                            <ErrorMessage name={`products.${index}.productId`} component={Label} className="text-red-500" />
                           </div>
+
                           <div className="flex-1">
                             <Label htmlFor={`products.${index}.quantity`}>Cantidad</Label>
                             <Field name={`products.${index}.quantity`}>
@@ -223,16 +215,18 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
 
                                 return (
                                   <div className="flex items-center gap-2">
-                                    <Slider
-                                      value={[field.value]}
-                                      onValueChange={(value) => {
-                                        setFieldValue(`products.${index}.quantity`, value[0]);
-                                      }}
-                                      disabled={!selectedProduct}
-                                      min={1}
-                                      max={maxQuantity}
-                                      step={1}
-                                    />
+                                    <div className="flex-1">
+                                      <Slider
+                                        value={[field.value]}
+                                        onValueChange={(value) => {
+                                          setFieldValue(`products.${index}.quantity`, value[0]);
+                                        }}
+                                        disabled={!selectedProduct}
+                                        min={1}
+                                        max={maxQuantity}
+                                        step={1}
+                                      />
+                                    </div>
                                     <Input
                                       type="number"
                                       min={1}
@@ -249,23 +243,24 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                                 );
                               }}
                             </Field>
-                            <ErrorMessage
-                              name={`products.${index}.quantity`}
-                              component={Label}
-                              className="text-red-500"
-                            />
+                            <ErrorMessage name={`products.${index}.quantity`} component={Label} className="text-red-500" />
                           </div>
+
                           <div className="flex-1">
                             <Label>Subtotal</Label>
                             <Input readOnly value={formatPrice(calculateLineTotal(product.productId, product.quantity))} />
                           </div>
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            onClick={() => remove(index)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+
+                          <div className="flex items-end">
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              onClick={() => remove(index)}
+                              className="w-full sm:w-auto"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                       <Button
@@ -273,6 +268,7 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                         variant="outline"
                         disabled={values.products.length === products.filter(p => p.quantity > 0).length}
                         onClick={() => push({ productId: products.filter(p => p.quantity > 0).find(p => !values.products.map(p => p.productId).includes(p.id))!.id, quantity: 1 })}
+                        className="w-full sm:w-auto"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Agregar Producto
@@ -284,7 +280,7 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
               </div>
 
               {/* Deliveries Section */}
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Label>Entregas</Label>
                   <Tooltip>
@@ -299,14 +295,12 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
 
                 <FieldArray name="deliveries">
                   {({ push, remove }) => (
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       {values.deliveries.map((delivery, index) => (
                         <div key={index} className="border p-4 rounded-lg space-y-4">
-                          <div className="grid grid-cols-3 gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                              <Label htmlFor={`deliveries.${index}.employeeId`}>
-                                Empleado
-                              </Label>
+                              <Label htmlFor={`deliveries.${index}.employeeId`}>Empleado</Label>
                               <Field name={`deliveries.${index}.employeeId`}>
                                 {({ field }: FieldProps) => (
                                   <Select
@@ -320,7 +314,7 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                                       });
                                     }}
                                   >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="w-full">
                                       <SelectValue placeholder="Seleccionar empleado" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -333,17 +327,11 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                                   </Select>
                                 )}
                               </Field>
-                              <ErrorMessage
-                                name={`deliveries.${index}.employeeId`}
-                                component={Label}
-                                className="text-red-500"
-                              />
+                              <ErrorMessage name={`deliveries.${index}.employeeId`} component={Label} className="text-red-500" />
                             </div>
 
                             <div>
-                              <Label htmlFor={`deliveries.${index}.addressId`}>
-                                Dirección
-                              </Label>
+                              <Label htmlFor={`deliveries.${index}.addressId`}>Dirección</Label>
                               <Field name={`deliveries.${index}.addressId`}>
                                 {({ field }: FieldProps) => (
                                   <Select
@@ -358,7 +346,7 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                                     }}
                                     disabled={!customer}
                                   >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="w-full">
                                       <SelectValue placeholder="Seleccionar dirección" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -371,17 +359,11 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                                   </Select>
                                 )}
                               </Field>
-                              <ErrorMessage
-                                name={`deliveries.${index}.addressId`}
-                                component={Label}
-                                className="text-red-500"
-                              />
+                              <ErrorMessage name={`deliveries.${index}.addressId`} component={Label} className="text-red-500" />
                             </div>
 
                             <div>
-                              <Label htmlFor={`deliveries.${index}.startDate`}>
-                                Fecha de Inicio
-                              </Label>
+                              <Label htmlFor={`deliveries.${index}.startDate`}>Fecha de Inicio</Label>
                               <Field name={`deliveries.${index}.startDate`}>
                                 {({ field }: FieldProps) => (
                                   <DateTimePicker
@@ -397,11 +379,7 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                                   />
                                 )}
                               </Field>
-                              <ErrorMessage
-                                name={`deliveries.${index}.startDate`}
-                                component={Label}
-                                className="text-red-500"
-                              />
+                              <ErrorMessage name={`deliveries.${index}.startDate`} component={Label} className="text-red-500" />
                             </div>
                           </div>
 
@@ -409,6 +387,7 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                             type="button"
                             variant="destructive"
                             onClick={() => remove(index)}
+                            className="w-full sm:w-auto"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Eliminar Entrega
@@ -424,6 +403,7 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                           addressId: -1,
                           startDate: new Date(new Date().getTime() + 30 * 60000).toISOString()
                         })}
+                        className="w-full sm:w-auto"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Agregar Entrega
@@ -433,17 +413,17 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                 </FieldArray>
               </div>
 
-              <div className="flex flex-row justify-between gap-4">
+              <div className="flex flex-col sm:flex-row justify-between gap-4">
                 <Button
                   type="button"
                   variant="destructive"
-                  className="w-72"
+                  className="w-full sm:w-72"
                   onClick={() => router.push("/sales/list")}
                 >
                   Volver
                 </Button>
                 <Button
-                  className="w-72"
+                  className="w-full sm:w-72"
                   type="submit"
                   disabled={isSubmitting}
                 >
@@ -451,9 +431,11 @@ export function CreateSaleForm({ products, employees, customers, onSubmit }: Sal
                 </Button>
               </div>
             </Form>
-          )
+          );
         }}
       </Formik>
     </TooltipProvider>
   );
 }
+
+export default CreateSaleForm;
